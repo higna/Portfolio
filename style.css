@@ -335,6 +335,9 @@ form input, form textarea{
     font-size: 18px;
     border-radius: 20px;
 }
+form input, form placeholder{
+    color: #080808;
+}
 form .btn2{
     padding: 14px 60px;
     font-size: 18px;
