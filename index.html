@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stoney's Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/d00c55f27e.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="header">
+        <div class="container">
+            <nav>
+                <a href="#header"><img src="images/logo.jpg" class="logo"></a>
+                <ul>
+                    <li><a href="#header">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#portfolio">Portfolio</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-text">
+                <p>Software Developer & Data Analyst</p>
+                <h1>Ignatius-Igboko <span>Hector</span><br><span class="sstoney">Stoney</span></h1>
+            </div>
+        </div>
+    </div>
+<!-----about-->
+    <div id="about">
+        <div class="container">
+            <div class="row">
+                <div class="about-col1">
+                    <img src="images/stoney.jpg">
+                </div>
+                <div class="about-col2">
+                    <h1 class="about-title">About Me</h1>
+                    <p class="stoney">I'm Ignatius-Igboko <span>Hector</span>, <br> Officially known as <span> Stoney</span>. <br>
+                    I'm a Software Developer and Data Analyst, based in Nigeria, <br>
+                    After Graduating from the Dominican University, Ibadan, (B.sc). <br>
+                    I am currently interning with the International Institute of Tropical Agriculture (IITA) <br>
+                    with the Virology Departmgent as the Department's Data Analyst. </p>
+                    
+                    <div class="tab-titles">
+                        <p class="tab-links active-link" onclick="opentab('skills')">Skills</p>
+                        <p class="tab-links"onclick="opentab('experience')">Experience</p>
+                        <p class="tab-links"onclick="opentab('education')">Education</p>
+                    </div>
+                    <div class="tab-contents active-tab" id="skills">
+                        <ul>
+                            <li><span> Web Developer</span><br>Web App Development</li>
+                            <li><span> App Developer</span><br>Mobile App Development</li>
+                            <li><span> Data Analysis </span><br>Storing / Interpreting Data </li>
+                        </ul>
+                    </div>
+                    <div class="tab-contents" id="experience">
+                        <ul>
+                            <li><span> July - Oct 2019 </span><br>Intern IITA (YIFSWA) </li>
+                            <li><span> 2022 - 2023 </span><br>Intern IITA (VIROLOGY)</li>
+                        </ul>
+                    </div>
+                    <div class="tab-contents" id="education">
+                        <ul>
+                            <li><span> 2020 </span><br>B.sc Computer Science: Dominican University</li>
+                            <li><span> 2023 </span><br>Use of seed tracker for Data Analysis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!---Services-->
+    <div id="services">
+        <div class="container">
+            <h1 class="sub-title">My Services </h1>
+            <div class="services-list">
+                <div>
+                    <i class="fa-solid fa-code"></i>
+                    <h2>Web Design</h2>
+                    <p>Development of fully functional web based application </p>
+                    <a href="#">Learn More</a>
+                </div>
+                
+                <div>
+                    <i class="fa-brands fa-app-store-ios"></i>
+                    <h2>App Design</h2>
+                    <p>Development of fully functional mobile based application </p>
+                    <a href="#">Learn More</a>
+                </div>
+                <div>
+                    <i class="fa-solid fa-compass-drafting"></i>
+                    <h2>Logo Creation</h2>
+                    <p>Whatever Logo you wish, I make. </p>
+                    <a href="#">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!------Portfolio-->
+    <div id="portfolio">
+        <div class="container">
+            <h1 class="sub-title">My Work</h1>
+            <div class="work-list">
+                <div class="work">
+                    <img src="images/weather.jpg" >
+                    <div class="layer">
+                        <h3>Weather Checker</h3>
+                        <p>This app helps you chack the weather conditions of any location of your choice</p>
+                        <a href="weather.html"><i class="fa-solid fa-up-right-from-square"></i></a>
+                    </div>
+                </div>
+                <div class="work">
+                    <img src="images/todo.jpg" >
+                    <div class="layer">
+                        <h3>To-do list</h3>
+                        <p>This app helps you organize your activities of the day</p>
+                        <a href="todo.html"><i class="fa-solid fa-up-right-from-square"></i></a>
+                    </div>
+                </div>
+                <div class="work">
+                    <img src="images/calculator.jpg" >
+                    <div class="layer">
+                        <h3>Calculator App</h3>
+                        <p>This app helps you to make mathematical calculations </p>
+                        <a href="#"><i class="fa-solid fa-up-right-from-square"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div >
+            <a href="#" class="btn">See More</a>
+        </div>
+    </div>
+    <!------Contact-->
+    <div id="contact">
+        <div class="container">
+            <div class="row">
+                <div class="contact-left">
+                    <h1 class="sub-title">Contact Me</h1>
+                    <p><i class="fa-solid fa-paper-plane"></i> higboko@gmail.com</p>
+                    <p><i class="fa-solid fa-phone-volume"></i> 07015724288</p>
+                    <p><i class="fa-solid fa-phone-volume"></i> 09160409456</p>
+                    <div class="social-icons">
+                        <a href="https://web.facebook.com/higboko"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="https://github.com/Higna"><i class="fa-brands fa-github"></i></a>
+                        <a href="https://www.linkedin.com/in/hector-ignatius-igboko-909b6518a/"><i class="fa-brands fa-linkedin"></i></a>
+                    </div>
+                    <a href="#" class="btn btn2">Download CV</a>
+                </div>
+                <div class="contact-right">
+                    <form>
+                        <input type="text" name="Name" placeholder="Your Name" required>
+                        <input type="email" name="email" placeholder="Your Email" required>
+                        <textarea name="Message" rows="6" placeholder="Your Message"></textarea>
+                        <button type="submit" class="btn btn2">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>Copyright © Stoney</p>
+            <img src="images/logo.jpg">
+        </div>
+    </div>
+    
+
+
+    <script>
+        var tablinks = document.getElementsByClassName("tab-links");
+        var tabcontents = document.getElementsByClassName("tab-contents");
+
+        function opentab(tabname){
+            for(tablink of tablinks){
+                tablink.classList.remove("active-link");
+            }
+            for(tabcontent of tabcontents){
+                tabcontent.classList.remove("active-tab");
+            }
+            event .currentTarget.classList.add("active-link");
+            document.getElementById(tabname).classList.add("active-tab");
+        }
+    </script>
+
+</body>
+</html>
