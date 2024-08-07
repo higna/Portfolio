@@ -16,6 +16,8 @@ body {
     background-image: url(images/background.jpg);
     background-size: center;
     background-position: center;
+    background-repeat: no-repeat;
+    background-color: #080808;
 }
 
 .container {
@@ -93,7 +95,6 @@ span {
 }
 
 .about-col1 img {
-    margin-top: 5px;
     width: 100%;
     border-radius: 15px;
 }
