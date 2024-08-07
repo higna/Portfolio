@@ -6,6 +6,7 @@
     <title>Stoney's Portfolio</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://kit.fontawesome.com/d00c55f27e.js" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
 </head>
 <body>
     <div id="header">
@@ -35,14 +36,14 @@
                 </div>
                 <div class="about-col2">
                     <h1 class="about-title">About Me</h1>
-                    <p class="stoney">I'm Igna-Igboko <span>Hector</span>, <br>span> Francesco </span>. <br>
+                    <p class="stoney">I'm Igna-Igboko <span>Hector</span>, <br><span> Francesco </span><br>
                     I'm a Software Developer, Data Analyst, AI developer, based in Nigeria, <br>
                     A Graduate from the Dominican University, Ibadan, <span>(B.sc)</span>.<br>
-                    Currently working in the International Institute of Tropical Agriculture (IITA) <span> Virology Departmgent</span>.</p>
+                    Currently working at the International Institute of Tropical Agriculture (IITA) <span> Virology</span>.</p>
                     
                     <div class="tab-titles">
                         <p class="tab-links active-link" onclick="opentab('skills')">Skills</p>
-                        <p class="tab-links"onclick="opentab('experience')">Experience</p>
+                        <p class="tab-links"onclick="opentab('experience')">Experiences</p>
                         <p class="tab-links"onclick="opentab('education')">Education</p>
                         <p class="tab-links"onclick="opentab('certificate')">Certificates</p>
                     </div>
@@ -62,14 +63,18 @@
                     </div>
                     <div class="tab-contents" id="education">
                         <ul>
-                            <li><span> Master's in Artificial Intelligence </span><br>Institution: University of Ibadan <br> Year: 2023 - Present <br>Description:Currently pursuing a master's degree in Artificial Intelligence, focusing on advanced AI techniques, machine learning, and their applications in healthcare and other industries.</li>
+                            <li><span> Master's in Artificial Intelligence </span><br>Institution: University of Ibadan <br> Year: 2023 - Present <br>Currently pursuing a master's degree in Artificial Intelligence, focusing on advanced AI techniques, machine learning, and their applications in healthcare and other industries.</li>
                             <li><span> Bachelor's in Computer Science </span><br>Institution: Dominican University <br> Year: 2017 - 2021 <br>Graduated with a Bachelor's degree in Computer Science, gaining a strong foundation in software development, data analysis, and computer systems.</li>
                         </ul>
                     </div>
                     <div class="tab-contents" id="certificate">
                         <ul>
-                            <li><span> Master's in Artificial Intelligence </span><br>Institution: University of Ibadan <br> Year: 2023-Present <br>Description:Currently pursuing a master's degree in Artificial Intelligence, focusing on advanced AI techniques, machine learning, and their applications in healthcare and other industries.</li>
-                            <li><span> Bachelor's in Computer Science </span><br>Institution: Dominican University <br> Year: 2017 - 2021 <br>Graduated with a Bachelor's degree in Computer Science, gaining a strong foundation in software development, data analysis, and computer systems.</li>
+                            <li><span> Introduction to Statistical Analysis and Machine Learning Using R</span><br> Institution: International Institute of Tropical Agriculture (IITA)<br> Issued: April 2024<br>Description: Completed a course on statistical analysis and machine learning using R, focusing on practical applications and techniques.</li>
+                            <li><span> Essentials of Data Visualization using MS Excel </span><br>Institution: Acacia University Professional Development<br> Issued: February 2024<br>Description: Gained proficiency in data visualization techniques using MS Excel, emphasizing the creation of effective visual representations of data.</li>
+                            <li><span> Technical Support Fundamentals</span><br> Institution: Google<br> Issued: December 2023<br>Description: Learned the fundamentals of technical support, including troubleshooting, customer service, and networking basics.</li>
+                            <li><span> Basics of Digital Marketing</span><br> Institution: UniAthena<br> Issued: November 2023<br>Description: Covered the essentials of digital marketing, including SEO, social media marketing, and content strategy.</li>
+                            <li><span> IT Security: Defense Against the Digital Dark Arts</span><br> Institution: Google <br> Issued: November 2023<br>Description: Studied IT security principles, focusing on protecting systems and data from digital threats.</li>
+                            
                         </ul>
                     </div>
                 </div>
@@ -85,7 +90,7 @@
                 <div>
                     <i class="fa-solid fa-code"></i>
                     <h2>Web Design</h2>
-                    <p>Development of fully functional web based application </p>
+                    <p>I offer professional web development services to build dynamic and responsive websites tailored to your business needs.</p>
                     <a href="#">Learn More</a>
                 </div>
                 
@@ -172,23 +177,5 @@
         </div>
     </div>
     
-
-
-    <script>
-        var tablinks = document.getElementsByClassName("tab-links");
-        var tabcontents = document.getElementsByClassName("tab-contents");
-
-        function opentab(tabname){
-            for(tablink of tablinks){
-                tablink.classList.remove("active-link");
-            }
-            for(tabcontent of tabcontents){
-                tabcontent.classList.remove("active-tab");
-            }
-            event .currentTarget.classList.add("active-link");
-            document.getElementById(tabname).classList.add("active-tab");
-        }
-    </script>
-
 </body>
 </html>
