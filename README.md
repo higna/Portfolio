@@ -48,6 +48,6 @@ Hello! I'm Hector Igna-Igboko, a dedicated professional with a diverse backgroun
 ## Contact
 Feel free to reach out to me for inquiries or collaborations:
 
-- **Email:** [higbioko@gmail.com](mailto:higbioko@gmail.com)
+- **Email:** [higbioko@gmail.com](mailto:higboko@gmail.com)
 - **LinkedIn:** [linkedin.com/in/hector-ignatius-igboko-909b6518a/](https://www.linkedin.com/in/hector-ignatius-igboko-909b6518a/)
-- **GitHub:** [github.c
+- **GitHub:** [github.com/Higna)
