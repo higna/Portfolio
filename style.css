@@ -20,7 +20,7 @@ body {
 }
 
 .container {
-    padding: 10px 10%;
+    padding: 10px 5%;
 }
 
 nav {
@@ -189,51 +189,69 @@ span {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     grid-gap: 50px;
-    margin-top: 30px;
+    margin-top: 10px;
+    padding: 10px 0;
 }
 
 .services_tab {
     background: grey;
-    padding: 40px;
+    padding: 20px;
     font-size: 13px;
     font-weight: 300;
     border-radius: 20px;
     transition: background 0.5s, transform 0.5s;
+    justify-content: center;
+    align-items: center;
 }
 
 .services_tab i {
-    font-size: 50px;
-    margin-bottom: 10px;
+    font-size: 30px;
+    margin-left: 10px;
 }
 
 .services_tab h2 {
     font-size: 30px;
-    font-weight: 200;
+    font-weight: bold;
     margin-bottom: 15px;
+    text-align: center;
 }
 
 .services_tab p {
     font-size: 17px;
     font-weight: 100;
-}
-
-.services_tab a {
-    text-decoration: none;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 200;
-    margin-top: 10px;
+    text-align: center;
+    margin-bottom: 10px;
     display: inline-block;
-}
-
-.services_tab a:hover {
-    color: #ababab;
 }
 
 .services_tab:hover {
     color: black;
     transform: translateY(-10px);
 
+}
+
+.services_tab .more_text {
+    display: none;
+}
+
+.read_more {
+    background-color: black;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 6px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    margin-left: 95px;
+}
+
+.read_more:hover {
+    background-color: darkslategrey;
 }
 
 /*-----------------------portfolio-------------------------------*/
@@ -288,11 +306,11 @@ span {
     font-size: 30px;
     font-weight: bold;
     margin-bottom: 20px;
-    color: #ababab;
+    color: white;
 }
 
 .layer p {
-    color: #ababab;
+    color: #fff;
     font-size: 17px;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: bold;
@@ -408,7 +426,7 @@ form .btn2 {
     cursor: pointer;
 }
 
-.download_btn{
+.download_btn {
     margin: 40px auto;
     width: fit-content;
     border: 1px solid #ababab;
@@ -419,10 +437,14 @@ form .btn2 {
     cursor: pointer;
     display: inline-block;
     background: #262626;
+    font-weight: bold;
+    font-size: 20px;
 }
-.download_btn:hover{
+
+.download_btn:hover {
     background-color: #5e738a;
 }
+
 /* ------------------------Copyright------------------------------------- */
 .copyright {
     width: 100%;
@@ -447,11 +469,11 @@ form .btn2 {
     height: 50px;
 }
 
-/*--------------------------------------weather--------------------------*/
-#weather {
+/*--------------------------------------Dashboard--------------------------*/
+#dashboard {
     width: 100%;
     height: 100vh;
-    background-image: url(images/weather.jpg);
+    background-image: url(images/dashboard.jpg);
     background-size: cover;
     background-position: center;
 }

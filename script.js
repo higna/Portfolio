@@ -24,3 +24,26 @@ function downloadCV() {
     link.click();
     document.body.removeChild(link);
 }
+
+// Services
+document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('.read_more');
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const gridItem = button.closest('.services_tab');
+        const short_text = gridItem.querySelector('.short_text');
+        const more_text = gridItem.querySelector('.more_text');
+        
+        if (short_text.style.display === "none") {
+          short_text.style.display = "inline";
+          button.textContent = "Read More";
+          more_text.style.display = "none";
+        } else {
+          short_text.style.display = "none";
+          button.textContent = "Show Less";
+          more_text.style.display = "inline";
+        }
+      });
+    });
+  });
