@@ -12,7 +12,7 @@ body {
 
 #header {
     width: 100%;
-    height: 99vh;
+    height: 100vh;
     background-image: url(images/background.jpg);
     background-size: center;
     background-position: center;
@@ -34,11 +34,11 @@ nav {
     width: 140px;
     border-radius: 20px;
 }
-
 nav ul li {
     display: inline-block;
     list-style: none;
     margin: 10px 20px;
+    margin-left: 10px;
 }
 
 nav ul li a {
@@ -187,11 +187,11 @@ span {
 .services-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    grid-gap: 40px;
-    margin-top: 50px;
+    grid-gap: 50px;
+    margin-top: 30px;
 }
 
-.services-list div {
+.services_tab {
     background: grey;
     padding: 40px;
     font-size: 13px;
@@ -200,46 +200,45 @@ span {
     transition: background 0.5s, transform 0.5s;
 }
 
-.services-list div i {
+.services_tab i {
     font-size: 50px;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 
-.services-list div h2 {
+.services_tab h2 {
     font-size: 30px;
     font-weight: 200;
     margin-bottom: 15px;
 }
 
-.services-list div p {
+.services_tab p {
     font-size: 17px;
     font-weight: 100;
 }
 
-.services-list div a {
+.services_tab a {
     text-decoration: none;
     color: #fff;
     font-size: 15px;
     font-weight: 200;
-    margin-top: 25px;
+    margin-top: 10px;
     display: inline-block;
 }
 
-.services-list div a:hover {
+.services_tab a:hover {
     color: #ababab;
 }
 
-.services-list div:hover {
+.services_tab:hover {
     color: black;
     transform: translateY(-10px);
 
 }
 
-
-/*----portfolio----*/
+/*-----------------------portfolio-------------------------------*/
 #portfolio {
-    padding: 60px 0;
-    margin-top: 80px;
+    padding: 30px 0;
+    margin-top: 50px;
     color: #262626;
     background: #262626;
 }
@@ -326,8 +325,11 @@ span {
     color: #fff;
 }
 
-/*--------Contact---------*/
-
+/*-----------------------------Contact--------------------------------------*/
+#contact {
+    padding: 10px 0;
+    margin-top: 20px;
+}
 .contact-left {
     flex-basis: 35%;
 }
@@ -398,25 +400,29 @@ form .btn2 {
     margin-top: 20px;
     cursor: pointer;
 }
-
+/* ------------------------Copyright------------------------------------- */
 .copyright {
     width: 100%;
     text-align: center;
     padding: 25px 0;
-    background: #ababab;
+    background: #262626;;
     font-weight: 300;
     margin-top: 20px;
     color: #262626;
 }
+.copyright p{
+    margin-top: 10px;
+    color: white;
+}
 
 .copyright img {
-    margin-top: 10px;
+    margin-top: -10px;
     margin-left: 5px;
     width: 50px;
     height: 50px;
 }
 
-/*--------weather---------*/
+/*--------------------------------------weather--------------------------*/
 #weather {
     width: 100%;
     height: 100vh;
