@@ -50,4 +50,4 @@ Feel free to reach out to me for inquiries or collaborations:
 
 - **Email:** [higbioko@gmail.com](mailto:higboko@gmail.com)
 - **LinkedIn:** [linkedin.com/in/hector-ignatius-igboko-909b6518a/](https://www.linkedin.com/in/hector-ignatius-igboko-909b6518a/)
-- **GitHub:** [github.com/Higna)
+- **GitHub:** [github.com/Higna](https://github.com/Higna)
