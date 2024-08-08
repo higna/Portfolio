@@ -161,7 +161,7 @@ span {
 .tab-contents ul li {
     line-height: 25px;
     list-style: none;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .tab-contents ul li span {
@@ -200,8 +200,6 @@ span {
     font-weight: 300;
     border-radius: 20px;
     transition: background 0.5s, transform 0.5s;
-    justify-content: center;
-    align-items: center;
 }
 
 .services_tab i {
@@ -224,6 +222,9 @@ span {
     display: inline-block;
 }
 
+.services_tab.short_text{
+    text-align: center;
+}
 .services_tab:hover {
     color: black;
     transform: translateY(-10px);
