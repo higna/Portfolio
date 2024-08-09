@@ -4,20 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="portfolio.css">
     <script src="https://kit.fontawesome.com/d00c55f27e.js" crossorigin="anonymous"></script>
     <script src="script.js"></script>
 </head>
 
 <body>
-    <div id="dashboard">
+    <div id="header">
         <div class="container">
-            <iframe width="1200" height="650"
+            <nav>
+                <a href="index.html"><img src="images/logo.jpg" class="logo"></a>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="../index.html#about">About</a></li>
+                    <li><a href="../index.html#services">Services</a></li>
+                    <li><a href="../index.html#portfolio">Portfolio</a></li>
+                    <li><a href="../index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+        <main class="main-content">
+            <iframe width="1200" height="900"
                 src="https://lookerstudio.google.com/embed/reporting/658db558-3ed5-4607-bbf2-75adffc6eb69/page/x5npD"
                 frameborder="0" style="border:0" allowfullscreen
-                sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
-        </div>
+                sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
+            </iframe>
+        </main>
+    </div>
+    <!----------------------------------------- Copyright------------------------------- -->
+    <div class="copyright">
+        <img src="images/logo.jpg">
+        <p>Copyright © Hector</p>
     </div>
 </body>
 
