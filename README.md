@@ -1,5 +1,5 @@
 # Hector Igna-Igboko's Portfolio
-[Visit Site](www.higna.vercel.app)
+[Visit Site](https://higna.vercel.app)
 
 ## Introduction
 Welcome to my portfolio! Here, you'll find a comprehensive overview of my work, skills, and projects developed over the years. This repository showcases my professional journey and highlights my expertise and achievements in data analysis, software development, and more.
