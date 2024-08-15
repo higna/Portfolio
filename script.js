@@ -47,3 +47,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+// Typed-Text 
+document.addEventListener("DOMContentLoaded", function() {
+    const typedText = document.getElementById("typed-text");
+    const textArray = ["IT Professional","Software Developer", "Data Analyst", "AI Developer"];
+    let textIndex = 0;
+    let charIndex = 0;
+
+    function type() {
+        if (charIndex < textArray[textIndex].length) {
+            typedText.textContent += textArray[textIndex].charAt(charIndex);
+            charIndex++;
+            setTimeout(type, 100); // Adjust typing speed here
+        } else {
+            setTimeout(erase, 2000); // Pause before erasing
+        }
+    }
+
+    function erase() {
+        if (charIndex > 0) {
+            typedText.textContent = textArray[textIndex].substring(0, charIndex - 1);
+            charIndex--;
+            setTimeout(erase, 50); // Adjust erasing speed here
+        } else {
+            textIndex = (textIndex + 1) % textArray.length;
+            setTimeout(type, 500); // Pause before typing next text
+        }
+    }
+
+    type(); // Start the typing effect
+});

@@ -62,6 +62,22 @@ span {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.typing-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px;
+    white-space: nowrap;
+    border-right: 3px solid;
+    width: fit-content;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+#typed-text {
+    color: white;
+    font-weight: bold;
+    font-size:40px ;
+}
+
 .header-text p {
     font-size: 18px;
 }
