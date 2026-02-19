@@ -1,4 +1,18 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: luxury, bumblebee;
+  themes: pastel, abyss;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: "Inter", sans-serif;
+  }
+
+  .font-serif {
+    font-family: "Playfair Display", serif;
+  }
 }

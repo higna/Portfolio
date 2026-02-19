@@ -3,10 +3,10 @@ import { createContext, useContext, useState } from "react";
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("luxury");
+  const [theme, setTheme] = useState("pastel");
 
   const toggleTheme = () => {
-    setTheme(theme === "luxury" ? "bumblebee" : "luxury");
+    setTheme(theme === "pastel" ? "abyss" : "pastel");
   };
 
   return (
