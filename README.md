@@ -1,54 +1,16 @@
-# Hector Igna-Igboko's Portfolio
-[Visit Site](https://higna.vercel.app)
+# React + Vite
 
-## Introduction
-Welcome to my portfolio! Here, you'll find a comprehensive overview of my work, skills, and projects developed over the years. This repository showcases my professional journey and highlights my expertise and achievements in data analysis, software development, and more.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Table of Contents
-- [About Me](#about-me)
-- [Skills](#skills)
-- [Projects](#projects)
-- [Experience](#experience)
-- [Education](#education)
-- [Contact](#contact)
+Currently, two official plugins are available:
 
-## About Me
-Hello! I'm Hector Igna-Igboko, a dedicated professional with a diverse background spanning data analysis, software development, and virology. Currently, I am pursuing a master's degree in Artificial Intelligence at the University of Ibadan, aiming to further enhance my skills and contribute to innovative solutions in technology and healthcare. My work includes projects like virus detection from images and developing chatbots to improve user support.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Skills
-- **Programming Languages:** Python, JavaScript, Java, R
-- **Web Development:** HTML, CSS, JavaScript
-- **Data Analysis:** SQL, Google Data Studio, R
-- **Tools and Technologies:** Google Sheets, ODK Collect
+## React Compiler
 
-## Projects
-- **Virus Detection from Images**  
-  Developed a model to assist in detecting viruses from medical images, aiming to enhance diagnostic accuracy.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- **Chatbot for User Support**  
-  Created an introductory-level chatbot to handle common user queries and provide support, improving customer service efficiency.
+## Expanding the ESLint configuration
 
-- **Data Visualization with Google Data Studio**  
-  Built interactive dashboards to present complex datasets in an accessible and visually appealing format.
-
-## Experience
-**Data Analyst**  
-*International Institute of Tropical Agriculture (IITA)*  
-*2023 - Present*  
-- Analyzing and visualizing data, creating reports, ensuring data quality, and collaborating with teams to support data-driven decision-making.
-
-## Education
-**Master's in Artificial Intelligence**  
-*University of Ibadan*  
-*2023 - Present*
-
-**Bachelor's in Computer Science**  
-*Dominican University*  
-*2017 - 2021*
-
-## Contact
-Feel free to reach out to me for inquiries or collaborations:
-
-- **Email:** [higbioko@gmail.com](mailto:higboko@gmail.com)
-- **LinkedIn:** [linkedin.com/in/hector-ignatius-igboko-909b6518a/](https://www.linkedin.com/in/hector-ignatius-igboko-909b6518a/)
-- **GitHub:** [github.com/Higna](https://github.com/Higna)
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
