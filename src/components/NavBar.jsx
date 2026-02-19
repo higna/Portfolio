@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { useTheme } from "../../context/ThemeContext";
 import { Moon, Sun, Menu, X } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
 
 const NavBar = () => {
   const location = useLocation();
@@ -15,7 +15,6 @@ const NavBar = () => {
   const navLinks = [
     { to: "/", text: "Home" },
     { to: "/about", text: "About" },
-    { to: "/services", text: "Services" },
     { to: "/about#contact", text: "Contact" },
   ];
 
@@ -39,8 +38,8 @@ const NavBar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <img
-              src="/JaynStan.png"
-              alt="JaynStan Logo"
+              src="/logo.png"
+              alt="Higna Logo"
               className="h-18 w-auto object-contain"
             />
           </Link>

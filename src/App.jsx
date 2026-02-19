@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import { Route, Routes, useLocation } from "react-router";
-import { HomePage, AboutPage } from "./pages/Index";
-import { ServicesPage } from "./pages/Content";
-import { NavBar, Footer } from "./components/Bar";
+import { useEffect } from "react";
+import { Route, Routes } from "react-router";
 import { useTheme } from "./context/ThemeContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { NavBar, Footer } from "./components";
+import { HomePage } from "./pages";
 
 const AppLayout = () => {
   const { theme, setTheme } = useTheme();
@@ -20,8 +19,6 @@ const AppLayout = () => {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/services" element={<ServicesPage />} />
           </Routes>
         </main>
         <Footer />
@@ -37,5 +34,4 @@ const App = () => {
     </ThemeProvider>
   );
 };
-
 export default App;

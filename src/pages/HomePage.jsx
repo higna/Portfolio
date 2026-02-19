@@ -8,7 +8,6 @@ import {
   Users,
   Award,
   TrendingUp,
-  CheckCircle,
   ArrowRight,
   Star,
   Zap,
