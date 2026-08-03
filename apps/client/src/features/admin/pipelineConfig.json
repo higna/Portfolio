@@ -1,0 +1,48 @@
+[
+    {
+        "key": "farmer",
+        "label": "Cocoa Farmer Registration",
+        "description": "Form 858406 → sheet CST_Farmer",
+        "scriptName": "clean_cocoa_farmer.py",
+        "formId": "858406",
+        "sheetName": "CST_Farmer",
+        "spreadsheetKey": "cocoa"
+    },
+    {
+        "key": "farm",
+        "label": "Cocoa Farm Registration",
+        "description": "Form 858414 → sheet CST_Farm",
+        "scriptName": "clean_cocoa_farm.py",
+        "formId": "858414",
+        "sheetName": "CST_Farm",
+        "spreadsheetKey": "cocoa"
+    },
+    {
+        "key": "cassava",
+        "label": "Cassava ST",
+        "description": "Form 179430 → sheet CST_SPP",
+        "scriptName": "clean_cassava.py",
+        "formId": "179430",
+        "sheetName": "CST_SPP",
+        "spreadsheetKey": "cassava"
+    },
+    {
+        "key": "tosci",
+        "label": "Tosci ST",
+        "description": "Form 352432 → sheet TOSCI",
+        "scriptName": "clean_tosci.py",
+        "formId": "352432",
+        "sheetName": "TOSCI",
+        "spreadsheetKey": "tosci"
+    },
+    {
+        "key": "cocoaEval",
+        "label": "Cocoa Field Evaluation",
+        "description": "Form 878136 → Aggregated analysis & charts",
+        "scriptName": "clean_cocoa_field_eval.py",
+        "formId": "878136",
+        "sheetName": "CocoaEval",
+        "spreadsheetKey": "cocoaEval",
+        "hasChartOption": true
+    }
+]

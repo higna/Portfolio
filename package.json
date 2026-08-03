@@ -1,0 +1,1 @@
+{"name":"portfolio","private":true,"workspaces":["apps/*"],"scripts":{"dev":"concurrently \"npm run dev:server\" \"npm run dev:client\"","dev:server":"npm --workspace=apps/server run dev","dev:client":"npm --workspace=apps/client run dev"},"dependencies":{"concurrently":"^10.0.3","lucide-react":"^1.26.0"}}
