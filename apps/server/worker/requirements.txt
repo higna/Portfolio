@@ -1,1 +1,10 @@
-requests pandas gspread oauth2client gspread-dataframe matplotlib numpy Pillow PyPDF2 openpyxl
+requests 
+pandas 
+gspread
+oauth2client
+gspread-dataframe
+matplotlib
+numpy 
+Pillow 
+PyPDF2 
+openpyxl
