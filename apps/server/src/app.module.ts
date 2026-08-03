@@ -40,10 +40,9 @@ import { RequestLoggerMiddleware } from './common/request-logger.middleware';
     PipelineModule,
     DashboardModule,
     PortfolioModule,
-     HealthPingService,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, HealthPingService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -16,7 +16,7 @@ export class HealthPingService {
         try {
             await axios.get(`${this.backendUrl}/`);
             this.logger.log('Health ping sent');
-        } catch (error: any) {   // ← cast to any
+        } catch (error: any) {
             this.logger.warn(`Health ping failed: ${error.message}`);
         }
     }
