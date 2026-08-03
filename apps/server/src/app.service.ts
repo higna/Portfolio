@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
-  getWelcomeHtml(): string {
+  getWelcomeHtml(frontendUrl: string): string {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -178,7 +178,7 @@ export class AppService {
     <div class="nav-links">
       <a href="#top">Home</a>
       <a href="#endpoints">Endpoints</a>
-      <a href="http://localhost:2000" target="_blank">Frontend</a>
+      <a href="${frontendUrl}" target="_blank">Frontend</a>
     </div>
   </nav>
 
