@@ -18,7 +18,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  const port = configService.get<number>('BACKEND_PORT', 2500);
+  const port = process.env.PORT || configService.get<number>('BACKEND_PORT') || 2500;
   const frontendUrl = configService.get<string>('FRONTEND_URL');
   const backendUrl = configService.get<string>('BACKEND_URL', `http://localhost:${port}`);
 
