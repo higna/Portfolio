@@ -13,7 +13,7 @@ export class PipelineService {
   private readonly configDir: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.pipelinesDir = join(__dirname, '..', 'worker', 'scripts', 'pipelines');this.pipelinesDir = join(__dirname, '..', 'worker', 'scripts', 'pipelines');
+    this.pipelinesDir = join(__dirname, '..', 'worker', 'scripts', 'pipelines');
     this.configDir = join(__dirname, '..', 'worker', 'config');
   }
 

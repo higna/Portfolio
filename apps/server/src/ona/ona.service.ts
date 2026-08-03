@@ -27,7 +27,7 @@ export interface ExportOptions {
 export class OnaService {
   private readonly logger = new Logger(OnaService.name);
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   /* ------------------------------------------------------------------ */
   /*  List forms via the Python script                                   */
@@ -38,7 +38,7 @@ export class OnaService {
     if (!apiKey) throw new InternalServerErrorException('ONA_API_KEY not configured');
 
     return new Promise((resolve, reject) => {
-      const scriptPath = join(__dirname, '..', 'worker', 'scripts', 'list_ona_forms.py');
+      const scriptPath = join(process.cwd(), 'worker', 'scripts', 'list_ona_forms.py');
       const pythonProcess = spawn('python', [scriptPath, apiKey, baseUrl]);
       let output = '', errorOutput = '';
 
