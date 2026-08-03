@@ -38,7 +38,7 @@ export class OnaService {
     if (!apiKey) throw new InternalServerErrorException('ONA_API_KEY not configured');
 
     return new Promise((resolve, reject) => {
-      const scriptPath = join(process.cwd(), 'worker', 'scripts', 'list_ona_forms.py');
+      const scriptPath = join(__dirname, '..', 'worker', 'scripts', 'list_ona_forms.py');
       const pythonProcess = spawn('python', [scriptPath, apiKey, baseUrl]);
       let output = '', errorOutput = '';
 
