@@ -48,7 +48,8 @@ export class PipelineService {
 
     // Write credentials to a temporary file
     const tempCredsPath = join(tmpdir(), `gcp-creds-${Date.now()}.json`);
-    writeFileSync(tempCredsPath, credsJson, 'utf-8');
+    const fixedCreds = credsJson.replace(/\\n/g, '\n');
+    writeFileSync(tempCredsPath, fixedCreds, 'utf-8');
 
     // *** ORDER MATTERS – must match what the Python script expects ***
     const args = [
