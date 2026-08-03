@@ -11,6 +11,7 @@ import { PipelineModule } from './pipeline/pipeline.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { HealthPingService } from './common/health-ping.service';
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { RequestLoggerMiddleware } from './common/request-logger.middleware';
 
@@ -39,6 +40,7 @@ import { RequestLoggerMiddleware } from './common/request-logger.middleware';
     PipelineModule,
     DashboardModule,
     PortfolioModule,
+     HealthPingService,
   ],
   controllers: [AppController],
   providers: [AppService],
