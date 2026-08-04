@@ -107,6 +107,7 @@ export class AppService {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      align-items: center;  /* centers children horizontally */
     }
     .topbar {
       position: sticky;
@@ -119,6 +120,7 @@ export class AppService {
       align-items: center;
       gap: 1rem;
       border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+      width: 100%;
     }
     .topbar .menu-btn {
       display: none;
@@ -160,10 +162,6 @@ export class AppService {
     .topbar .search-container input:focus {
       border-color: var(--gold-light);
       box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
-    }
-    .topbar .search-container input:focus + svg,
-    .topbar .search-container input:focus ~ svg {
-      color: var(--gold-light);
     }
     .topbar .frontend-link {
       margin-left: auto;
@@ -323,6 +321,7 @@ export class AppService {
       font-size: 0.85rem;
       border-top: 1px solid rgba(212, 175, 55, 0.1);
       margin-top: auto;
+      width: 100%;
       display: flex;
       flex-direction: column;
       gap: 0.8rem;

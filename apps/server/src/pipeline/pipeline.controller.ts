@@ -1,25 +1,25 @@
-import { Controller, Post, Body, Get, Res, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { PipelineService } from './pipeline.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { PublicGuard } from '../common/guards/public.guard';
 import { UserRole } from '../users/entities/user.entity';
-import { rmdirSync } from 'fs';
 import { join } from 'path';
-import { existsSync } from 'fs';
-import AdmZip from 'adm-zip';
+import { createReadStream, existsSync, rmdirSync } from 'fs';
+
+const archiver = require('archiver');
 
 @Controller('pipeline')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class PipelineController {
-  constructor(private readonly pipelineService: PipelineService) { }
+  constructor(private readonly pipelineService: PipelineService) {}
 
   @Post('run')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
   async runPipeline(
-    @Body()
-    body: {
+    @Body() body: {
       scriptName: string;
       formId: string;
       sheetName: string;
@@ -41,21 +41,23 @@ export class PipelineController {
   }
 
   @Get('download-cocoa-eval')
-  @UseGuards()
+  @UseGuards(PublicGuard)
   async downloadCocoaEvalCharts(@Res() res: Response) {
     const outputDir = join(process.cwd(), 'worker', 'output', 'cocoa_eval');
     if (!existsSync(outputDir)) {
       return res.status(404).json({ message: 'No charts available' });
     }
 
-    const zip = new AdmZip();
-    zip.addLocalFolder(outputDir);
-    const zipBuffer = zip.toBuffer();
-
+    const archive = archiver('zip', { zlib: { level: 9 } });
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="Cocoa Evaluation Charts.zip"');
-    res.send(zipBuffer);
+    res.setHeader('Content-Disposition', 'attachment; filename="cocoa_eval_charts.zip"');
 
-    try { rmdirSync(outputDir, { recursive: true }); } catch { }
+    archive.on('end', () => {
+      try { rmdirSync(outputDir, { recursive: true }); } catch {}
+    });
+
+    archive.pipe(res);
+    archive.directory(outputDir, false);
+    archive.finalize();
   }
 }
