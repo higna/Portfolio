@@ -6,6 +6,7 @@ import {
   Loader2,
   ArrowRight,
   Download,
+  Link2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import pipelines from "./pipelineConfig.json";
@@ -13,11 +14,14 @@ import pipelines from "./pipelineConfig.json";
 type StepStatus = "idle" | "running" | "done" | "failed";
 
 function StepIcon({ status }: { status: StepStatus }) {
-  if (status === "done") return <CheckCircle className="w-5 h-5 text-success" />;
+  if (status === "done")
+    return <CheckCircle className="w-5 h-5 text-success" />;
   if (status === "failed") return <XCircle className="w-5 h-5 text-error" />;
   if (status === "running")
     return <Loader2 className="w-5 h-5 text-primary animate-spin" />;
-  return <div className="w-5 h-5 rounded-full border-2 border-base-content/30" />;
+  return (
+    <div className="w-5 h-5 rounded-full border-2 border-base-content/30" />
+  );
 }
 
 export default function AdminPipeline() {
@@ -25,11 +29,17 @@ export default function AdminPipeline() {
   const [generateCharts, setGenerateCharts] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadClicked, setDownloadClicked] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const [pipelineStates, setPipelineStates] = useState<Record<string, {
-    steps: Record<string, StepStatus>;
-    message: string;
-  }>>({});
+  const [pipelineStates, setPipelineStates] = useState<
+    Record<
+      string,
+      {
+        steps: Record<string, StepStatus>;
+        message: string;
+      }
+    >
+  >({});
 
   const runPipeline = async (pipeline: (typeof pipelines)[0]) => {
     setRunning(pipeline.key);
@@ -61,7 +71,7 @@ export default function AdminPipeline() {
             spreadsheetKey: pipeline.spreadsheetKey,
             generateCharts: pipeline.hasChartOption ? generateCharts : false,
           }),
-        }
+        },
       );
 
       if (!res.ok) throw new Error("Pipeline request failed");
@@ -94,7 +104,7 @@ export default function AdminPipeline() {
 
       if (pipeline.key === "cocoaEval" && generateCharts) {
         setDownloadUrl(
-          `${import.meta.env.VITE_API_URL || "http://localhost:2500"}/pipeline/download-cocoa-eval`
+          `${import.meta.env.VITE_API_URL || "http://localhost:2500"}/pipeline/download-cocoa-eval`,
         );
       }
 
@@ -115,7 +125,7 @@ export default function AdminPipeline() {
 
   const updatePipelineState = (
     key: string,
-    step: { step: string; status: string; message?: string }
+    step: { step: string; status: string; message?: string },
   ) => {
     setPipelineStates((prev) => {
       const current = prev[key] || {
@@ -130,16 +140,20 @@ export default function AdminPipeline() {
           step.status === "complete"
             ? "done"
             : step.status === "running"
-            ? "running"
-            : "failed";
+              ? "running"
+              : "failed";
         message = "Downloading submissions…";
-      } else if (step.step === "clean" || step.step === "process" || step.step === "charts") {
+      } else if (
+        step.step === "clean" ||
+        step.step === "process" ||
+        step.step === "charts"
+      ) {
         newSteps.clean =
           step.status === "complete"
             ? "done"
             : step.status === "running"
-            ? "running"
-            : "failed";
+              ? "running"
+              : "failed";
         if (step.step === "charts") message = "Generating charts…";
         else message = "Cleaning & transforming data…";
       } else if (step.step === "upload") {
@@ -147,8 +161,8 @@ export default function AdminPipeline() {
           step.status === "complete"
             ? "done"
             : step.status === "running"
-            ? "running"
-            : "failed";
+              ? "running"
+              : "failed";
         message = "Uploading to Google Sheets…";
       }
 
@@ -159,6 +173,18 @@ export default function AdminPipeline() {
         [key]: { steps: newSteps, message },
       };
     });
+  };
+
+  const handleCopyLink = () => {
+    if (!downloadUrl) return;
+    navigator.clipboard
+      .writeText(downloadUrl)
+      .then(() => {
+        setCopied(true);
+        toast.success("Link copied to clipboard");
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => toast.error("Failed to copy"));
   };
 
   const getCurrentState = (key: string) =>
@@ -215,7 +241,8 @@ export default function AdminPipeline() {
                   </p>
                   {allDone && (
                     <p className="text-xs text-success mt-1 flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" /> All steps completed
+                      <CheckCircle className="w-3.5 h-3.5" /> All steps
+                      completed
                     </p>
                   )}
                   {!allDone && isRunning && (
@@ -231,7 +258,9 @@ export default function AdminPipeline() {
 
               <div className="flex items-center justify-center gap-4 mb-6">
                 <div className="flex flex-col items-center">
-                  <StepIcon status={isRunning ? state.steps.download : "idle"} />
+                  <StepIcon
+                    status={isRunning ? state.steps.download : "idle"}
+                  />
                   <span className="text-xs text-base-content/50 mt-1">
                     Download
                   </span>
@@ -278,14 +307,23 @@ export default function AdminPipeline() {
               </button>
 
               {downloadUrl && p.key === "cocoaEval" && !downloadClicked && (
-                <a
-                  href={downloadUrl}
-                  download
-                  onClick={() => setDownloadClicked(true)}
-                  className="btn btn-outline btn-sm w-full gap-2 mt-3 animate-fade-in"
-                >
-                  <Download className="w-4 h-4" /> Download Charts & Data
-                </a>
+                <div className="flex flex-col gap-2 mt-3 animate-fade-in">
+                  <a
+                    href={downloadUrl}
+                    download
+                    onClick={() => setDownloadClicked(true)}
+                    className="btn btn-outline btn-sm w-full gap-2"
+                  >
+                    <Download className="w-4 h-4" /> Download Charts & Data
+                  </a>
+                  <button
+                    onClick={handleCopyLink}
+                    className="btn btn-ghost btn-sm w-full gap-2"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    {copied ? "Copied!" : "Copy shareable link"}
+                  </button>
+                </div>
               )}
             </div>
           );
