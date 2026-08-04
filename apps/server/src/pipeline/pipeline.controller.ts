@@ -41,7 +41,6 @@ export class PipelineController {
   }
 
   @Get('download-cocoa-eval')
-  @Roles(UserRole.SUPERADMIN)
   async downloadCocoaEvalCharts(@Res() res: Response) {
     const outputDir = join(process.cwd(), 'worker', 'output', 'cocoa_eval');
     if (!existsSync(outputDir)) {
