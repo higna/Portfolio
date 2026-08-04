@@ -40,18 +40,33 @@ export class PipelineService {
 
     const apiKey = this.configService.get<string>('ONA_API_KEY');
     const baseUrl = this.configService.get<string>('ONA_BASE_URL', 'https://api.ona.io/api/v1');
-    const credsJson = this.configService.get<string>('GOOGLE_SERVICE_ACCOUNT_JSON');
 
-    if (!apiKey || !credsJson) {
-      throw new Error('Missing required configuration');
+    // ──── Fix Google credentials newlines ────
+    const credsRaw = this.configService.get<string>('GOOGLE_SERVICE_ACCOUNT_JSON');
+    if (!apiKey || !credsRaw) {
+      throw new Error('Missing required configuration (ONA_API_KEY or GOOGLE_SERVICE_ACCOUNT_JSON)');
     }
 
-    // Write credentials to a temporary file
-    const tempCredsPath = join(tmpdir(), `gcp-creds-${Date.now()}.json`);
-    const fixedCreds = credsJson.replace(/\\n/g, '\n');
-    writeFileSync(tempCredsPath, fixedCreds, 'utf-8');
+    // Parse the JSON to an object, then fix the private key
+    let creds: any;
+    try {
+      creds = JSON.parse(credsRaw);
+    } catch {
+      throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON');
+    }
 
-    // *** ORDER MATTERS – must match what the Python script expects ***
+    if (creds.private_key) {
+      // Turn literal \n into real newlines – this makes the PEM‑valid key
+      creds.private_key = creds.private_key.replace(/\\n/g, '\n');
+    }
+
+    // Re‑serialize to a clean JSON string (newlines become \n again, which is correct JSON)
+    const fixedJson = JSON.stringify(creds);
+
+    const tempCredsPath = join(tmpdir(), `gcp-creds-${Date.now()}.json`);
+    writeFileSync(tempCredsPath, fixedJson, 'utf-8');
+    // ────────────────────────────────────────
+
     const args = [
       scriptPath,
       apiKey,
