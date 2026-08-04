@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
+import { useState, useEffect, useMemo } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   LayoutDashboard,
   MessageCircle,
@@ -27,12 +27,12 @@ import {
   Download,
   Cog,
   BriefcaseConveyorBeltIcon,
-} from "lucide-react";
-import { createLogger } from "../../lib/logger";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
+} from 'lucide-react';
+import { createLogger } from '../../lib/logger';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
-const logger = createLogger("DashboardLayout");
+const logger = createLogger('DashboardLayout');
 
 interface NavItem {
   label: string;
@@ -40,63 +40,80 @@ interface NavItem {
   icon: React.ComponentType<any>;
   subItems?: NavItem[];
   roles?: string[];
+  external?: boolean;
 }
 
 const getNavConfig = (role: string): NavItem[] => {
   const config: NavItem[] = [];
 
-  if (role === "SUPERADMIN") {
+  if (role === 'SUPERADMIN') {
     config.push({
-      label: "Admin",
+      label: 'Admin',
       icon: LayoutDashboard,
       subItems: [
-        { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { path: "/dashboard/users", label: "Users", icon: Users },
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/dashboard/users', label: 'Users', icon: Users },
+        { path: `${import.meta.env.VITE_API_URL || 'http://localhost:2500'}`, label: 'API Docs', icon: FileText, external: true },
       ],
     });
     config.push({
-      label: "Portfolio",
+      label: 'Portfolio',
       icon: BookOpen,
       subItems: [
-        { path: "/dashboard/profile", label: "Profile", icon: User },
-        { path: "/dashboard/certifications", label: "Certifications", icon: Award },
-        { path: "/dashboard/education", label: "Education", icon: GraduationCap },
-        { path: "/dashboard/experience", label: "Experience", icon: Briefcase },
-        { path: "/dashboard/projects", label: "Projects", icon: FolderGit2 },
-        { path: "/dashboard/skills", label: "Skills", icon: Wrench },
+        { path: '/dashboard/profile', label: 'Profile', icon: User },
+        { path: '/dashboard/certifications', label: 'Certifications', icon: Award },
+        { path: '/dashboard/education', label: 'Education', icon: GraduationCap },
+        { path: '/dashboard/experience', label: 'Experience', icon: Briefcase },
+        { path: '/dashboard/projects', label: 'Projects', icon: FolderGit2 },
+        { path: '/dashboard/skills', label: 'Skills', icon: Wrench },
       ],
     });
-    config.push({ label: "Data Engineering", icon: Database, subItems: [
-        { path: "/dashboard/data/download", label: "Download", icon: Download },
-        { path: "/dashboard/data/pipeline", label: "Pipeline", icon: Cog },
+    config.push({
+      label: 'Data Engineering',
+      icon: Database,
+      subItems: [
+        { path: '/dashboard/data/download', label: 'Download', icon: Download },
+        { path: '/dashboard/data/pipeline', label: 'Pipeline', icon: Cog },
       ],
     });
-    config.push({ path: "/projects", label: "Projects", icon: BriefcaseConveyorBeltIcon });
-    config.push({ path: "/dashboard/chat", label: "AI Chat Bot", icon: MessageCircle });
-    config.push({ label: "PDF Tools", icon: FileText, subItems: [
+    config.push({ path: '/projects', label: 'Projects', icon: BriefcaseConveyorBeltIcon });
+    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
+    config.push({
+      label: 'PDF Tools',
+      icon: FileText,
+      subItems: [
         { path: '/dashboard/pdf/merge', label: 'Merge PDFs', icon: FileText },
         { path: '/dashboard/pdf/images-to-pdf', label: 'Images to PDF', icon: FileText },
       ],
     });
-    config.push({ label: "Barcode Tools", icon: QrCode, subItems: [
-        { path: "/dashboard/barcode/generator", label: "Generator", icon: QrCode },
-        { path: "/dashboard/barcode/interpreter", label: "Interpreter", icon: ScanLine },
+    config.push({
+      label: 'Barcode Tools',
+      icon: QrCode,
+      subItems: [
+        { path: '/dashboard/barcode/generator', label: 'Generator', icon: QrCode },
+        { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
   } else {
     // User dashboard
-    config.push({ path: "/dashboard", label: "Dashboard", icon: LayoutDashboard });
-    config.push({ path: "/dashboard/profile", label: "Profile", icon: User });
-    config.push({ path: "/projects", label: "Projects", icon: BriefcaseConveyorBeltIcon });
-    config.push({ path: "/dashboard/chat", label: "AI Chat Bot", icon: MessageCircle });
-    config.push({ label: "PDF Tools", icon: FileText, subItems: [
+    config.push({ path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard });
+    config.push({ path: '/dashboard/profile', label: 'Profile', icon: User });
+    config.push({ path: '/projects', label: 'Projects', icon: BriefcaseConveyorBeltIcon });
+    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
+    config.push({
+      label: 'PDF Tools',
+      icon: FileText,
+      subItems: [
         { path: '/dashboard/pdf/merge', label: 'Merge PDFs', icon: FileText },
         { path: '/dashboard/pdf/images-to-pdf', label: 'Images to PDF', icon: FileText },
       ],
     });
-    config.push({ label: "Barcode Tools", icon: QrCode, subItems: [
-        { path: "/dashboard/barcode/generator", label: "Generator", icon: QrCode },
-        { path: "/dashboard/barcode/interpreter", label: "Interpreter", icon: ScanLine },
+    config.push({
+      label: 'Barcode Tools',
+      icon: QrCode,
+      subItems: [
+        { path: '/dashboard/barcode/generator', label: 'Generator', icon: QrCode },
+        { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
   }
@@ -136,13 +153,33 @@ const NavItem = ({
 
   const linkClasses = `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
     isActive
-      ? "bg-primary/10 text-primary shadow-sm"
-      : "text-base-content/70 hover:bg-base-200 hover:text-primary hover:translate-x-1"
+      ? 'bg-primary/10 text-primary shadow-sm'
+      : 'text-base-content/70 hover:bg-base-200 hover:text-primary hover:translate-x-1'
   }`;
 
   const Icon = item.icon;
 
   if (item.path && !hasSubItems) {
+    // If it has an external flag, render an anchor tag
+    if (item.external) {
+      return (
+        <a
+          href={item.path}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleClick}
+          className={linkClasses}
+          title={collapsed ? item.label : undefined}
+        >
+          <Icon
+            className={`w-5 h-5 shrink-0 transition-transform duration-200 ${
+              isActive ? 'scale-110' : 'group-hover:scale-110'
+            }`}
+          />
+          {!collapsed && <span className="truncate">{item.label}</span>}
+        </a>
+      );
+    }
     return (
       <Link
         to={item.path}
@@ -152,7 +189,7 @@ const NavItem = ({
       >
         <Icon
           className={`w-5 h-5 shrink-0 transition-transform duration-200 ${
-            isActive ? "scale-110" : "group-hover:scale-110"
+            isActive ? 'scale-110' : 'group-hover:scale-110'
           }`}
         />
         {!collapsed && <span className="truncate">{item.label}</span>}
@@ -169,7 +206,7 @@ const NavItem = ({
             <span className="flex-1 truncate">{item.label}</span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-300 ${
-                isOpen ? "rotate-180" : ""
+                isOpen ? 'rotate-180' : ''
               }`}
             />
           </>
@@ -180,26 +217,43 @@ const NavItem = ({
         <div
           className={`grid transition-all duration-300 ease-in-out ${
             isOpen
-              ? "grid-rows-[1fr] opacity-100 mt-1"
-              : "grid-rows-[0fr] opacity-0"
+              ? 'grid-rows-[1fr] opacity-100 mt-1'
+              : 'grid-rows-[0fr] opacity-0'
           }`}
         >
           <div className="overflow-hidden flex flex-col gap-1 pl-9 pr-2">
-            {item.subItems!.map((sub) => (
-              <Link
-                key={sub.path}
-                to={sub.path!}
-                onClick={closeMobile}
-                className={`flex items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 hover:translate-x-1 ${
-                  location.pathname === sub.path
-                    ? "bg-primary/10 text-primary"
-                    : "text-base-content/60 hover:text-primary hover:bg-base-200"
-                }`}
-              >
-                {sub.icon && <sub.icon className="w-4 h-4" />}
-                {sub.label}
-              </Link>
-            ))}
+            {item.subItems!.map((sub) => {
+              if (sub.external) {
+                return (
+                  <a
+                    key={sub.path}
+                    href={sub.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMobile}
+                    className="flex items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 hover:translate-x-1 text-base-content/60 hover:text-primary hover:bg-base-200"
+                  >
+                    {sub.icon && <sub.icon className="w-4 h-4" />}
+                    {sub.label}
+                  </a>
+                );
+              }
+              return (
+                <Link
+                  key={sub.path}
+                  to={sub.path!}
+                  onClick={closeMobile}
+                  className={`flex items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 hover:translate-x-1 ${
+                    location.pathname === sub.path
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-base-content/60 hover:text-primary hover:bg-base-200'
+                  }`}
+                >
+                  {sub.icon && <sub.icon className="w-4 h-4" />}
+                  {sub.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}
@@ -213,7 +267,7 @@ export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const role = user?.role || "USER";
+  const role = user?.role || 'USER';
 
   const navItems = useMemo(() => getNavConfig(role), [role]);
 
@@ -222,9 +276,9 @@ export default function DashboardLayout() {
   }, [role]);
 
   const handleLogout = () => {
-    logger.log("Logout from dashboard");
+    logger.log('Logout from dashboard');
     logout();
-    navigate("/");
+    navigate('/');
   };
 
   return (
@@ -235,7 +289,7 @@ export default function DashboardLayout() {
         {/* Desktop sidebar */}
         <aside
           className={`hidden md:flex flex-col bg-base-100/90 backdrop-blur-lg border-r border-base-content/10 transition-all duration-300 z-20 sticky top-16 h-[calc(100vh-4rem)] ${
-            collapsed ? "w-20" : "w-70"
+            collapsed ? 'w-20' : 'w-70'
           }`}
         >
           <button
@@ -252,7 +306,7 @@ export default function DashboardLayout() {
 
           <div
             className={`flex items-center h-16 border-b border-base-content/5 transition-all duration-300 ${
-              collapsed ? "justify-center px-0" : "px-4"
+              collapsed ? 'justify-center px-0' : 'px-4'
             }`}
           >
             {!collapsed && (
@@ -273,13 +327,13 @@ export default function DashboardLayout() {
               onClick={toggleTheme}
               className="btn btn-ghost btn-sm w-full justify-start gap-2"
             >
-              {theme === "bumblebee" ? (
+              {theme === 'bumblebee' ? (
                 <Moon className="w-4 h-4" />
               ) : (
                 <Sun className="w-4 h-4" />
               )}
-              <span className={collapsed ? "hidden" : ""}>
-                {theme === "bumblebee" ? "Dark Mode" : "Light Mode"}
+              <span className={collapsed ? 'hidden' : ''}>
+                {theme === 'bumblebee' ? 'Dark Mode' : 'Light Mode'}
               </span>
             </button>
             <button
@@ -287,7 +341,7 @@ export default function DashboardLayout() {
               className="btn btn-ghost btn-sm w-full justify-start gap-2 text-error"
             >
               <LogOut className="w-4 h-4" />
-              <span className={collapsed ? "hidden" : ""}>Logout</span>
+              <span className={collapsed ? 'hidden' : ''}>Logout</span>
             </button>
           </div>
         </aside>
@@ -336,12 +390,12 @@ export default function DashboardLayout() {
                   onClick={toggleTheme}
                   className="btn btn-ghost btn-sm w-full justify-start gap-2"
                 >
-                  {theme === "bumblebee" ? (
+                  {theme === 'bumblebee' ? (
                     <Moon className="w-4 h-4" />
                   ) : (
                     <Sun className="w-4 h-4" />
                   )}
-                  {theme === "bumblebee" ? "Dark Mode" : "Light Mode"}
+                  {theme === 'bumblebee' ? 'Dark Mode' : 'Light Mode'}
                 </button>
                 <button
                   onClick={handleLogout}

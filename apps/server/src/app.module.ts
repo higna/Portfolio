@@ -1,18 +1,19 @@
-import { AppService } from './app.service';
-import { OnaModule } from './ona/ona.module';
-import { PdfModule } from './pdf/pdf.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { SeedModule } from './seed/seed.module';
-import { AuthModule } from './auth/auth.module';
-import { AppController } from './app.controller';
-import { UsersModule } from './users/users.module';
-import { ContactModule } from './contact/contact.module';
-import { PipelineModule } from './pipeline/pipeline.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PortfolioModule } from './portfolio/portfolio.module';
-import { DashboardModule } from './dashboard/dashboard.module';
-import { HealthPingService } from './common/health-ping.service';
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { SeedModule } from './seed/seed.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
+import { ContactModule } from './contact/contact.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { OnaModule } from './ona/ona.module';
+import { PipelineModule } from './pipeline/pipeline.module';
+import { PdfModule } from './pdf/pdf.module';
+import { HealthPingService } from './common/health-ping.service';
 import { RequestLoggerMiddleware } from './common/request-logger.middleware';
 
 @Module({
@@ -31,15 +32,15 @@ import { RequestLoggerMiddleware } from './common/request-logger.middleware';
         };
       },
     }),
-    OnaModule,
-    PdfModule,
+    UsersModule,
     AuthModule,
     SeedModule,
-    UsersModule,
-    ContactModule,
-    PipelineModule,
-    DashboardModule,
     PortfolioModule,
+    ContactModule,
+    DashboardModule,
+    OnaModule,
+    PipelineModule,
+    PdfModule,
   ],
   controllers: [AppController],
   providers: [AppService, HealthPingService],

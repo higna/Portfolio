@@ -202,7 +202,7 @@ export default function Navbar() {
               className="text-xl font-bold text-primary tracking-tight rounded"
               aria-label="Home"
             >
-              HECTOR
+              <img src="/higna.png" alt="HECTOR" className="h-16 w-auto" />
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
@@ -322,7 +322,9 @@ export default function Navbar() {
                 <div className="bg-neutral/20 rounded-full w-10 h-10 flex items-center justify-center">
                   <User className="w-5 h-5 text-base-content/70" />
                 </div>
-                <span className="text-sm font-medium text-base-content/70">Guest</span>
+                <span className="text-sm font-medium text-base-content/70">
+                  Guest
+                </span>
               </div>
             )}
           </div>
