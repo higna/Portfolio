@@ -1,5 +1,23 @@
 [
     {
+        "key": "cassava",
+        "label": "Cassava ST",
+        "description": "Form 179430 → sheet CST_SPP",
+        "scriptName": "clean_cassava.py",
+        "formId": "179430",
+        "sheetName": "CST_SPP",
+        "spreadsheetKey": "cassava"
+    },
+    {
+        "key": "tosci",
+        "label": "Tosci ST",
+        "description": "Form 352432 → sheet TOSCI",
+        "scriptName": "clean_tosci.py",
+        "formId": "352432",
+        "sheetName": "TOSCI",
+        "spreadsheetKey": "tosci"
+    },
+    {
         "key": "farmer",
         "label": "Cocoa Farmer Registration",
         "description": "Form 858406 → sheet CST_Farmer",
@@ -18,22 +36,22 @@
         "spreadsheetKey": "cocoa"
     },
     {
-        "key": "cassava",
-        "label": "Cassava ST",
-        "description": "Form 179430 → sheet CST_SPP",
-        "scriptName": "clean_cassava.py",
-        "formId": "179430",
-        "sheetName": "CST_SPP",
-        "spreadsheetKey": "cassava"
+        "key": "seedGarden",
+        "label": "Cocoa Seed Garden Registration",
+        "description": "Form 858417 → sheet CST_Seed Garden",
+        "scriptName": "clean_cocoa_seed_garden.py",
+        "formId": "858417",
+        "sheetName": "CST_Seed Garden",
+        "spreadsheetKey": "cocoa"
     },
     {
-        "key": "tosci",
-        "label": "Tosci ST",
-        "description": "Form 352432 → sheet TOSCI",
-        "scriptName": "clean_tosci.py",
-        "formId": "352432",
-        "sheetName": "TOSCI",
-        "spreadsheetKey": "tosci"
+        "key": "nursery",
+        "label": "Cocoa Nursery Production",
+        "description": "Form 858436 → sheet CST_Nursery",
+        "scriptName": "clean_cocoa_nursery.py",
+        "formId": "858436",
+        "sheetName": "CST_Nursery",
+        "spreadsheetKey": "cocoa"
     },
     {
         "key": "cocoaEval",
