@@ -54,6 +54,15 @@
         "spreadsheetKey": "cocoa"
     },
     {
+        "key": "shade",
+        "label": "Cocoa Shade Tree Registration",
+        "description": "Form 858437 → sheet CST_Shade",
+        "scriptName": "clean_cocoa_shade.py",
+        "formId": "858437",
+        "sheetName": "CST_Shade",
+        "spreadsheetKey": "cocoa"
+    },
+    {
         "key": "cocoaEval",
         "label": "Cocoa Field Evaluation",
         "description": "Form 878136 → Aggregated analysis & charts",

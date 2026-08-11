@@ -136,8 +136,15 @@ def main():
         df_long = pd.DataFrame(records)
         logger.info(f"Unpivoted to {len(df_long)} rows")
 
-        # Add INDEX before any explode (unique per unpivoted record)
-        df_long.insert(0, 'INDEX', range(1, len(df_long) + 1))
+        # 1. Add INDEX immediately – before any other processing
+        df_long = df_long.reset_index(drop=True)
+        df_long.index = df_long.index + 1
+        df_long.index.name = 'INDEX'
+        df_long = df_long.reset_index()
+
+        # Capitalize ORGANIZATION
+        if 'ORGANIZATION' in df_long.columns:
+            df_long['ORGANIZATION'] = df_long['ORGANIZATION'].astype(str).str.strip().str.upper()
 
         df_long['SEED_SOURCE_MAIN'] = df_long['SEED_SOURCE'].combine_first(df_long['SEED_SOURCE_0'])
         df_long['SEED_TYPE_MAIN']   = df_long['SEED_TYPE'].combine_first(df_long['SEED_TYPE_0'])
@@ -146,8 +153,9 @@ def main():
         df_long['SEEDLING DENSITY (per ha)'] = df_long['TOTAL SEEDLINGS'] / df_long['AREA (ha)']
         df_long['GPS LOCATION'] = df_long['LATITUDE'].astype(str) + ', ' + df_long['LONGITUDE'].astype(str)
 
+        # Text cleaning
         text_cols = [
-            'ORGANIZATION', 'SEED PROJECT', 'ZONE', 'STATE', 'LGA', 'COMMUNITY',
+            'SEED PROJECT', 'ZONE', 'STATE', 'LGA', 'COMMUNITY',
             'NURSERY TYPE', 'VARIETY', 'SEED_SOURCE_MAIN', 'SEED_TYPE_MAIN'
         ]
         for col in text_cols:
@@ -161,13 +169,20 @@ def main():
             if col in df_long.columns:
                 df_long[col] = pd.to_numeric(df_long[col], errors='coerce')
 
-        # ─── Explode VARIETY ───────────────────────────────
+        # 2. Variety explosion – capitalize → split → explode → replace _ with space
         if 'VARIETY' in df_long.columns:
-            df_long['VARIETY'] = df_long['VARIETY'].fillna('')
-            df_long = df_long.assign(
-                **{'VARIETY': df_long['VARIETY'].str.split(r'[\s,;]+')}
-            ).explode('VARIETY', ignore_index=True)
-            df_long = df_long[df_long['VARIETY'].str.strip() != '']
+            def split_varieties(val):
+                if pd.isna(val) or str(val).strip() == '':
+                    return []
+                val = str(val).strip().upper()
+                tokens = val.split()
+                tokens = [t.replace('_', ' ') for t in tokens]
+                return tokens
+
+            df_long['_variety_list'] = df_long['VARIETY'].apply(split_varieties)
+            df_long = df_long.explode('_variety_list')
+            df_long['VARIETY'] = df_long['_variety_list']
+            df_long = df_long.drop(columns=['_variety_list'])
             logger.info("Exploded VARIETY column.")
 
         final_cols = [
@@ -183,6 +198,10 @@ def main():
         ]
         df_final = df_long[[c for c in final_cols if c in df_long.columns]]
         df_final = df_final.sort_values(['NURSERY ID', 'PRODUCTION YEAR'])
+
+        # Convert INDEX to string to prevent Google Sheets date formatting
+        if 'INDEX' in df_final.columns:
+            df_final['INDEX'] = df_final['INDEX'].astype(str)
 
         logger.info(f"Final rows: {len(df_final)}")
         cleaned_path = os.path.join(tempfile.gettempdir(), f"{form_id}_cleaned.xlsx")
@@ -211,7 +230,6 @@ def main():
             client = gspread.authorize(credentials)
             sheet = client.open_by_key(spreadsheet_id).worksheet(sheet_name)
 
-            # Replace inf/-inf/NaN with None
             df_final = df_final.replace([np.inf, -np.inf], np.nan)
             df_final = df_final.where(pd.notnull(df_final), None)
 
