@@ -1,6 +1,7 @@
 """
 Cocoa Shade Tree Registration pipeline.
-Downloads form 858437, unpivots species counts, cleans, and uploads to Google Sheets.
+Two‑step explosion: flag category → species from text column.
+Downloads form 858437, cleans, and uploads to Google Sheets.
 Usage: python clean_cocoa_shade.py <api_key> <base_url> <form_id> <sheet_name> <creds_path> <spreadsheet_config_path> <spreadsheet_key>
 """
 import sys, json, os, tempfile, logging, traceback, re
@@ -27,8 +28,17 @@ def clean_text(val):
         return ' '.join(val.split()).title()
     return val
 
+def split_and_clean(val):
+    """Split a space‑ or comma‑separated string, clean each part."""
+    if pd.isna(val) or not str(val).strip():
+        return []
+    val = str(val).strip()
+    val = val.replace('_', ' ')
+    parts = re.split(r'[;, ]+', val)
+    return [p.strip() for p in parts if p.strip()]
+
 def main():
-    logger.info("Starting Cocoa Shade Tree Pipeline")
+    logger.info("Starting Cocoa Shade Tree Pipeline (flag‑to‑species explosion)")
     if len(sys.argv) < 8:
         log_step("error", "failed", "Missing arguments")
         sys.exit(1)
@@ -67,7 +77,7 @@ def main():
         df = pd.read_excel(tmp.name, sheet_name=0, engine='openpyxl')
         logger.info(f"Initial rows: {len(df)}")
 
-        # Base columns (identifiers)
+        # 1. Base columns
         base_cols = [
             "begin/field_no",
             "begin/survey_info/calc_farm_name",
@@ -83,50 +93,20 @@ def main():
             "begin/shade_info/shade",
             "begin/shade_info/timber",
             "begin/shade_info/fruit",
+            "begin/shade_info/other_shade",
             "begin/production_information/total_number",
             "begin/production_information/year_production",
             "begin/shade_info/seed_source_location/seed_source_state",
-            "begin/shade_info/other_shade",
+            "begin/shade_info/seed_source_location/seed_source_lga",
+            "begin/shade_info/seed_source_location/seed_source_city",
         ]
-        base_existing = [c for c in base_cols if c in df.columns]
+        existing_cols = [c for c in base_cols if c in df.columns]
+        df_base = df[existing_cols].copy()
 
-        # Species count columns (unpivot)
-        species_cols = [c for c in df.columns if c.endswith('_number') and 'begin/shade_info/' in c]
-        if not species_cols:
-            logger.warning("No species count columns found.")
-            log_step("clean", "failed", "No species columns")
-            sys.exit(1)
-
-        # Melt – unpivot species counts
-        df_melted = pd.melt(
-            df,
-            id_vars=base_existing,
-            value_vars=species_cols,
-            var_name='SPECIES_RAW',
-            value_name='TREE_COUNT'
-        )
-        logger.info(f"Melted to {len(df_melted)} rows")
-
-        # Extract clean species name
-        def extract_species(raw):
-            parts = raw.split('/')
-            if len(parts) >= 3:
-                species = parts[2]
-                species = re.sub(r'_number$', '', species)
-                return species.replace('_', ' ').upper()
-            return raw
-
-        df_melted['SPECIES'] = df_melted['SPECIES_RAW'].apply(extract_species)
-
-        # Drop rows with missing/zero counts
-        df_melted['TREE_COUNT'] = pd.to_numeric(df_melted['TREE_COUNT'], errors='coerce')
-        df_melted = df_melted[df_melted['TREE_COUNT'].notna() & (df_melted['TREE_COUNT'] > 0)]
-        logger.info(f"After dropping zero/missing counts: {len(df_melted)} rows")
-
-        # Rename base columns to ALL CAPS
+        # 2. Rename to ALL CAPS
         rename_map = {
             "begin/field_no": "FIELD ID",
-            "begin/survey_info/calc_farm_name": "RECIPIENT NAME",
+            "begin/survey_info/calc_farm_name": "NAME",
             "begin/survey_info/calc_nursery_organization": "ORGANIZATION",
             "begin/survey_info/calc_nursery_type": "ENTITY TYPE",
             "begin/survey_info/collection_purpose": "PURPOSE",
@@ -136,64 +116,111 @@ def main():
             "begin/survey_info/geo_information/city": "CITY",
             "begin/survey_info/geo_information/_coordinates_latitude": "LATITUDE",
             "begin/survey_info/geo_information/_coordinates_longitude": "LONGITUDE",
-            "begin/shade_info/shade": "SHADE TREES FLAG",
-            "begin/shade_info/timber": "TIMBER TREES FLAG",
-            "begin/shade_info/fruit": "FRUIT TREES FLAG",
+            "begin/shade_info/shade": "SHADE_FLAG",
+            "begin/shade_info/timber": "TIMBER_FLAG",
+            "begin/shade_info/fruit": "FRUIT_FLAG",
+            "begin/shade_info/other_shade": "OTHER_SHADE_TEXT",
             "begin/production_information/total_number": "TOTAL TREES",
             "begin/production_information/year_production": "YEAR PRODUCED",
             "begin/shade_info/seed_source_location/seed_source_state": "SEED SOURCE STATE",
-            "begin/shade_info/other_shade": "OTHER SHADE (TEXT)",
+            "begin/shade_info/seed_source_location/seed_source_lga": "SEED SOURCE LGA",
+            "begin/shade_info/seed_source_location/seed_source_city": "SEED SOURCE CITY",
         }
-        df_melted.rename(columns=rename_map, inplace=True)
+        df_base.rename(columns=rename_map, inplace=True)
 
-        # 1. Add INDEX immediately (before further processing)
-        df_melted = df_melted.reset_index(drop=True)
-        df_melted.index = df_melted.index + 1
-        df_melted.index.name = 'INDEX'
-        df_melted = df_melted.reset_index()
-
-        # 2. Clean text columns (Title Case)
-        text_cols = [
-            'RECIPIENT NAME', 'ORGANIZATION', 'ENTITY TYPE', 'PURPOSE',
-            'ZONE', 'STATE', 'LGA', 'CITY', 'SEED SOURCE STATE',
-            'SHADE TREES FLAG', 'TIMBER TREES FLAG', 'FRUIT TREES FLAG',
-            'OTHER SHADE (TEXT)'
-        ]
+        # 3. Clean text columns
+        text_cols = ['NAME', 'ORGANIZATION', 'ENTITY TYPE', 'PURPOSE', 'ZONE', 'STATE',
+                     'LGA', 'CITY', 'SEED SOURCE STATE', 'SEED SOURCE LGA', 'SEED SOURCE CITY']
         for col in text_cols:
-            if col in df_melted.columns:
-                df_melted[col] = df_melted[col].apply(clean_text)
+            if col in df_base.columns:
+                df_base[col] = df_base[col].apply(clean_text)
 
-        # ORGANIZATION → uppercase
-        if 'ORGANIZATION' in df_melted.columns:
-            df_melted['ORGANIZATION'] = df_melted['ORGANIZATION'].astype(str).str.strip().str.upper()
+        # 4. GPS and numeric conversions
+        df_base['LATITUDE'] = pd.to_numeric(df_base['LATITUDE'], errors='coerce')
+        df_base['LONGITUDE'] = pd.to_numeric(df_base['LONGITUDE'], errors='coerce')
+        df_base['GPS LOCATION'] = df_base['LATITUDE'].astype(str) + ', ' + df_base['LONGITUDE'].astype(str)
 
-        # 3. Derived columns
-        df_melted['LATITUDE'] = pd.to_numeric(df_melted['LATITUDE'], errors='coerce')
-        df_melted['LONGITUDE'] = pd.to_numeric(df_melted['LONGITUDE'], errors='coerce')
-        df_melted['GPS LOCATION'] = df_melted['LATITUDE'].astype(str) + ', ' + df_melted['LONGITUDE'].astype(str)
+        # 5. INDEX (1‑based)
+        df_base = df_base.reset_index(drop=True)
+        df_base.index = df_base.index + 1
+        df_base.index.name = 'INDEX'
+        df_base = df_base.reset_index()
 
-        # 4. Reorder columns
-        first_cols = ['INDEX', 'FIELD ID', 'RECIPIENT NAME', 'ORGANIZATION', 'ENTITY TYPE']
-        geo_cols = ['ZONE', 'STATE', 'LGA', 'CITY', 'LATITUDE', 'LONGITUDE', 'GPS LOCATION']
-        info_cols = ['PURPOSE', 'TOTAL TREES', 'YEAR PRODUCED', 'SEED SOURCE STATE']
-        species_cols_clean = ['SPECIES', 'TREE_COUNT']
-        flag_cols = ['SHADE TREES FLAG', 'TIMBER TREES FLAG', 'FRUIT TREES FLAG', 'OTHER SHADE (TEXT)']
+        # ---- Step 1: Explode categories based on flags ----
+        flag_cols = ['SHADE_FLAG', 'TIMBER_FLAG', 'FRUIT_FLAG']
+        flag_cols_existing = [c for c in flag_cols if c in df_base.columns]
+        flag_to_category = {
+            'SHADE_FLAG': 'Shade',
+            'TIMBER_FLAG': 'Timber',
+            'FRUIT_FLAG': 'Fruit'
+        }
 
-        order = first_cols + geo_cols + info_cols + species_cols_clean + flag_cols
-        order = [c for c in order if c in df_melted.columns]
-        df_final = df_melted[order]
+        records = []
+        for idx, row in df_base.iterrows():
+            base_row = row.to_dict()
+            for flag_col in flag_cols_existing:
+                flag_val = row.get(flag_col, None)
+                # ---- FIX: treat any non‑empty value as category present ----
+                if pd.notna(flag_val) and str(flag_val).strip() != '':
+                    category = flag_to_category[flag_col]
+                    # Determine the text column containing species names
+                    if category == 'Shade':
+                        text_val = row.get('OTHER_SHADE_TEXT', None)
+                    elif category == 'Timber':
+                        text_val = row.get('TIMBER_FLAG', None)
+                        if pd.isna(text_val) or not str(text_val).strip():
+                            text_val = row.get('OTHER_SHADE_TEXT', None)
+                    else:  # Fruit
+                        text_val = row.get('FRUIT_FLAG', None)
+                        if pd.isna(text_val) or not str(text_val).strip():
+                            text_val = row.get('OTHER_SHADE_TEXT', None)
 
-        # Convert INDEX to string to prevent Google Sheets date formatting
+                    species_list = split_and_clean(text_val)
+                    if species_list:
+                        for species in species_list:
+                            record = base_row.copy()
+                            record['CATEGORY'] = category
+                            record['SPECIES'] = clean_text(species)
+                            record['QUANTITY'] = 0
+                            records.append(record)
+                    else:
+                        record = base_row.copy()
+                        record['CATEGORY'] = category
+                        record['SPECIES'] = 'Unspecified'
+                        record['QUANTITY'] = 0
+                        records.append(record)
+
+        if not records:
+            logger.warning("No flagged categories found. Check your flag columns.")
+            log_step("clean", "failed", "No flagged data")
+            sys.exit(1)
+
+        df_exploded = pd.DataFrame(records)
+
+        # Drop original flag/text columns
+        drop_cols = flag_cols_existing + ['OTHER_SHADE_TEXT']
+        drop_cols = [c for c in drop_cols if c in df_exploded.columns]
+        df_exploded = df_exploded.drop(columns=drop_cols)
+
+        # 6. Reorder columns
+        first_cols = ['INDEX', 'FIELD ID', 'NAME', 'ORGANIZATION', 'ENTITY TYPE',
+                      'CATEGORY', 'SPECIES']
+        other_cols = [c for c in df_exploded.columns if c not in first_cols]
+        col_order = first_cols + other_cols
+        col_order = [c for c in col_order if c in df_exploded.columns]
+        df_final = df_exploded[col_order]
+
+        df_final = df_final.sort_values(['FIELD ID', 'CATEGORY', 'SPECIES'])
+
         if 'INDEX' in df_final.columns:
             df_final['INDEX'] = df_final['INDEX'].astype(str)
 
-        # Ensure numeric columns are proper
-        num_cols = ['LATITUDE', 'LONGITUDE', 'TOTAL TREES', 'YEAR PRODUCED', 'TREE_COUNT']
+        num_cols = ['LATITUDE', 'LONGITUDE']
         for col in num_cols:
             if col in df_final.columns:
                 df_final[col] = pd.to_numeric(df_final[col], errors='coerce')
 
-        logger.info(f"Final rows: {len(df_final)}")
+        logger.info(f"Final rows after explosion: {len(df_final)}")
 
         cleaned_path = os.path.join(tempfile.gettempdir(), f"{form_id}_cleaned.xlsx")
         df_final.to_excel(cleaned_path, index=False, engine='openpyxl')
