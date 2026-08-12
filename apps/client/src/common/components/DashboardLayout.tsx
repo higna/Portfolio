@@ -26,7 +26,8 @@ import {
   FolderGit2,
   Download,
   Cog,
-  BriefcaseConveyorBeltIcon,
+  BriefcaseConveyorBelt,
+  Image,
 } from 'lucide-react';
 import { createLogger } from '../../lib/logger';
 import Navbar from './Navbar';
@@ -76,8 +77,18 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/data/pipeline', label: 'Pipeline', icon: Cog },
       ],
     });
-    config.push({ path: '/projects', label: 'Projects', icon: BriefcaseConveyorBeltIcon });
-    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
+
+    // ---- Standalone Projects (clickable) ----
+    config.push({
+      label: 'Projects',
+      icon: BriefcaseConveyorBelt,
+      path: '/projects',
+      subItems: [
+        { path: '/dashboard/campaign', label: 'Campaign DP', icon: Image },
+      ],
+    });
+
+    // ---- Standalone PDF Tools ----
     config.push({
       label: 'PDF Tools',
       icon: FileText,
@@ -86,6 +97,8 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/pdf/images-to-pdf', label: 'Images to PDF', icon: FileText },
       ],
     });
+
+    // ---- Standalone Barcode Tools ----
     config.push({
       label: 'Barcode Tools',
       icon: QrCode,
@@ -94,12 +107,22 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
+
+    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
   } else {
     // User dashboard
     config.push({ path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard });
     config.push({ path: '/dashboard/profile', label: 'Profile', icon: User });
-    config.push({ path: '/projects', label: 'Projects', icon: BriefcaseConveyorBeltIcon });
-    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
+
+    config.push({
+      label: 'Projects',
+      icon: BriefcaseConveyorBelt,
+      path: '/projects',
+      subItems: [
+        { path: '/dashboard/campaign', label: 'Campaign DP', icon: Image },
+      ],
+    });
+
     config.push({
       label: 'PDF Tools',
       icon: FileText,
@@ -108,6 +131,7 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/pdf/images-to-pdf', label: 'Images to PDF', icon: FileText },
       ],
     });
+
     config.push({
       label: 'Barcode Tools',
       icon: QrCode,
@@ -116,6 +140,8 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
+
+    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
   }
 
   return config;
@@ -137,17 +163,16 @@ const NavItem = ({
   const isChildActive = hasSubItems
     ? item.subItems!.some((sub) => location.pathname === sub.path)
     : false;
-  const isActive = item.path ? location.pathname === item.path : isChildActive;
+  const isParentPathActive = item.path ? location.pathname === item.path : false;
+  const isActive = isParentPathActive || isChildActive;
 
   useEffect(() => {
     if (hasSubItems && isChildActive) setIsOpen(true);
   }, [isChildActive, hasSubItems]);
 
-  const handleClick = () => {
+  const handleToggleSub = () => {
     if (hasSubItems) {
       setIsOpen(!isOpen);
-    } else if (closeMobile) {
-      closeMobile();
     }
   };
 
@@ -159,15 +184,100 @@ const NavItem = ({
 
   const Icon = item.icon;
 
+  // Top‑level item with both path and sub‑items
+  if (item.path && hasSubItems) {
+    return (
+      <div>
+        <div className={`${linkClasses} cursor-pointer`}>
+          <Link
+            to={item.path}
+            onClick={closeMobile}
+            className="flex items-center gap-3 flex-1 truncate"
+            title={collapsed ? item.label : undefined}
+          >
+            <Icon
+              className={`w-5 h-5 shrink-0 transition-transform duration-200 ${
+                isActive ? 'scale-110' : 'group-hover:scale-110'
+              }`}
+            />
+            {!collapsed && <span className="truncate">{item.label}</span>}
+          </Link>
+          {!collapsed && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleToggleSub();
+              }}
+              className="btn btn-ghost btn-xs btn-circle ml-auto"
+              aria-label="Toggle sub‑menu"
+            >
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-300 ${
+                  isOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+          )}
+        </div>
+
+        {!collapsed && hasSubItems && (
+          <div
+            className={`grid transition-all duration-300 ease-in-out ${
+              isOpen
+                ? 'grid-rows-[1fr] opacity-100 mt-1'
+                : 'grid-rows-[0fr] opacity-0'
+            }`}
+          >
+            <div className="overflow-hidden flex flex-col gap-1 pl-9 pr-2">
+              {item.subItems!.map((sub) => {
+                if (sub.external) {
+                  return (
+                    <a
+                      key={sub.path}
+                      href={sub.path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={closeMobile}
+                      className="flex items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 hover:translate-x-1 text-base-content/60 hover:text-primary hover:bg-base-200"
+                    >
+                      {sub.icon && <sub.icon className="w-4 h-4" />}
+                      {sub.label}
+                    </a>
+                  );
+                }
+                return (
+                  <Link
+                    key={sub.path}
+                    to={sub.path!}
+                    onClick={closeMobile}
+                    className={`flex items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 hover:translate-x-1 ${
+                      location.pathname === sub.path
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-base-content/60 hover:text-primary hover:bg-base-200'
+                    }`}
+                  >
+                    {sub.icon && <sub.icon className="w-4 h-4" />}
+                    {sub.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Top‑level item that is a direct link (no sub‑items)
   if (item.path && !hasSubItems) {
-    // If it has an external flag, render an anchor tag
     if (item.external) {
       return (
         <a
           href={item.path}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={handleClick}
+          onClick={closeMobile}
           className={linkClasses}
           title={collapsed ? item.label : undefined}
         >
@@ -183,7 +293,7 @@ const NavItem = ({
     return (
       <Link
         to={item.path}
-        onClick={handleClick}
+        onClick={closeMobile}
         className={linkClasses}
         title={collapsed ? item.label : undefined}
       >
@@ -197,9 +307,10 @@ const NavItem = ({
     );
   }
 
+  // Top‑level item with only sub‑items (no path)
   return (
     <div>
-      <div onClick={handleClick} className={`${linkClasses} cursor-pointer`}>
+      <div onClick={handleToggleSub} className={`${linkClasses} cursor-pointer`}>
         <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
         {!collapsed && (
           <>

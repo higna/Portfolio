@@ -48,9 +48,11 @@ import {
   AdminSkills,
   AdminUserDetail,
   AdminUsers,
+  CampaignCreator,
+  CampaignList,
 } from "./features/admin";
 
-import { ProjectsPage } from "./features/projects";
+import { CampaignFill, ProjectsPage } from "./features/projects";
 import { ImageToPdf, PdfMerger } from "./features/projects/pdf";
 import { DashboardChat, DashboardHome, ProfilePage } from "./features/dashboard";
 
@@ -116,6 +118,9 @@ export default function AppRouter() {
             <Route path="/dashboard/profile" element={<ProfilePage />} />
             <Route path="/dashboard/pdf/merge" element={<PdfMerger />} />
             <Route path="/dashboard/pdf/images-to-pdf" element={<ImageToPdf />} />
+            <Route path="/dashboard/campaign" element={<CampaignList />} />
+            <Route path="/dashboard/campaign/create" element={<CampaignCreator />} />
+            <Route path="/dashboard/campaign/edit/:id" element={<CampaignCreator />} />
 
             {/* Admin protected dashboard routes */}
             <Route element={<RequireRole roles={["SUPERADMIN"]} />}>
@@ -142,6 +147,7 @@ export default function AppRouter() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/pdf/merge" element={<PdfMerger />} />
           <Route path="/pdf/images-to-pdf" element={<ImageToPdf />} />
+          <Route path="/campaign/:id" element={<CampaignFill />} />
         </Route>
 
         {/* 404 catch-all */}

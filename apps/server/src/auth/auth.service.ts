@@ -14,7 +14,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { MailService } from '../mail/mail.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
-import { AuthProvider } from '../users/entities/user.entity';
+import { User, AuthProvider } from '../users/entities/user.entity';
 import { verifyRecaptcha } from './recaptcha';
 
 @Injectable()
@@ -183,36 +183,35 @@ export class AuthService {
     picture?: string;
   }) {
     let user = await this.usersService.findByGoogleId(profile.googleId);
+
     if (!user) {
-      user = await this.usersService.findByEmail(profile.email);
-      if (user) {
-        user.googleId = profile.googleId;
-        if (!user.picture && profile.picture) {
-          const uploaded = await this.cloudinaryService.uploadAvatarFromUrl(profile.picture);
-          if (uploaded) user.picture = uploaded;
-        }
-        if (!user.fullName) user.fullName = profile.fullName;
-        await this.usersService.update(user.id, user);
-      } else {
-        let pictureUrl: string | null = null;
-        if (profile.picture) {
-          const uploaded = await this.cloudinaryService.uploadAvatarFromUrl(profile.picture);
-          if (uploaded) pictureUrl = uploaded;
-        }
-        user = await this.usersService.create({
-          email: profile.email,
-          fullName: profile.fullName,
-          googleId: profile.googleId,
-          picture: pictureUrl,
-          authProvider: AuthProvider.GOOGLE,
-          isVerified: true,
-        });
-      }
-    } else {
+      // ---- New Google user: create account + upload picture once ----
+      let pictureUrl: string | null = null;
       if (profile.picture) {
         const uploaded = await this.cloudinaryService.uploadAvatarFromUrl(profile.picture);
-        if (uploaded) user.picture = uploaded;
-        await this.usersService.update(user.id, { picture: user.picture });
+        if (uploaded) pictureUrl = uploaded;
+      }
+      user = await this.usersService.create({
+        email: profile.email,
+        fullName: profile.fullName,
+        googleId: profile.googleId,
+        picture: pictureUrl,
+        authProvider: AuthProvider.GOOGLE,
+        isVerified: true,
+      });
+    } else {
+      // ---- Existing user: do NOT re‑upload picture on every login ----
+      const updates: Partial<User> = {};
+      if (!user.fullName) {
+        updates.fullName = profile.fullName;
+      }
+      // Only upload if the user somehow has no picture yet (very rare)
+      if (!user.picture && profile.picture) {
+        const uploaded = await this.cloudinaryService.uploadAvatarFromUrl(profile.picture);
+        if (uploaded) updates.picture = uploaded;
+      }
+      if (Object.keys(updates).length > 0) {
+        await this.usersService.update(user.id, updates);
       }
     }
 

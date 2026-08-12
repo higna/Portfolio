@@ -15,6 +15,7 @@ import { PipelineModule } from './pipeline/pipeline.module';
 import { PdfModule } from './pdf/pdf.module';
 import { HealthPingService } from './common/health-ping.service';
 import { RequestLoggerMiddleware } from './common/request-logger.middleware';
+import { CampaignModule } from './campaign/campaign.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { RequestLoggerMiddleware } from './common/request-logger.middleware';
     OnaModule,
     PipelineModule,
     PdfModule,
+    CampaignModule
   ],
   controllers: [AppController],
   providers: [AppService, HealthPingService],

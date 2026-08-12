@@ -75,4 +75,24 @@ export class CloudinaryService {
       uploadStream.end(fileBuffer);
     });
   }
+  
+  async uploadCampaignImage(fileBuffer: Buffer, fileName: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'portfolio/campaigns',
+        public_id: `${fileName}-${Date.now()}`,
+        resource_type: 'image',
+      },
+      (error, result) => {
+        if (error || !result) {
+          this.logger.error(`Cloudinary upload failed: ${error?.message}`);
+          return reject(new InternalServerErrorException('Image upload failed'));
+        }
+        resolve(result.secure_url);
+      },
+    );
+    uploadStream.end(fileBuffer);
+  });
+}
 }
