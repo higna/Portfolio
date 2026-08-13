@@ -17,6 +17,8 @@ import { HealthPingService } from './common/health-ping.service';
 import { RequestLoggerMiddleware } from './common/request-logger.middleware';
 import { CampaignModule } from './campaign/campaign.module';
 import { GeneratorSettingsModule } from './generator-settings/generator-settings.module';
+import { EventsModule } from './common/events/events.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -45,7 +47,9 @@ import { GeneratorSettingsModule } from './generator-settings/generator-settings
     PipelineModule,
     PdfModule,
     CampaignModule,
-    GeneratorSettingsModule
+    GeneratorSettingsModule,
+    EventsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, HealthPingService],

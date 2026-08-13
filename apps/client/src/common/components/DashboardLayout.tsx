@@ -32,6 +32,7 @@ import {
 import { createLogger } from '../../lib/logger';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import CommandPalette from './CommandPalette';
 
 const logger = createLogger('DashboardLayout');
 
@@ -375,6 +376,7 @@ const NavItem = ({
 export default function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -383,8 +385,34 @@ export default function DashboardLayout() {
   const navItems = useMemo(() => getNavConfig(role), [role]);
 
   useEffect(() => {
-    logger.log(`Dashboard mounted for role: ${role}`);
-  }, [role]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const commands = useMemo(() => {
+    const navCommands: { label: string; action: () => void }[] = [];
+    const flatten = (items: NavItem[]) => {
+      items.forEach((item) => {
+        if (item.path && !item.external) {
+          navCommands.push({
+            label: item.label,
+            action: () => navigate(item.path!),
+          });
+        }
+        if (item.subItems) flatten(item.subItems);
+      });
+    };
+    flatten(navItems);
+    navCommands.push({ label: 'Quick Add', action: () => navigate('/dashboard') });
+    navCommands.push({ label: 'Export All', action: () => console.log('Export action') });
+    return navCommands;
+  }, [navItems, navigate]);
 
   const handleLogout = () => {
     logger.log('Logout from dashboard');
@@ -528,6 +556,13 @@ export default function DashboardLayout() {
       </div>
 
       <Footer />
+
+      {/* Command Palette */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        commands={commands}
+      />
     </div>
   );
 }

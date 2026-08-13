@@ -1,35 +1,28 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-    ManyToOne,
-    JoinColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 
 @Entity('generator_settings')
-export class GeneratorSettings {
-    @PrimaryGeneratedColumn('uuid')
-    id!: string;
+export class GeneratorSetting {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-    @Column()
-    name!: string;
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user!: User;
 
-    @Column({ type: 'jsonb' })
-    settings!: any;
+  @Column()
+  name!: string;
 
-    @ManyToOne(() => User, { nullable: false })
-    @JoinColumn({ name: 'userId' })
-    user!: User;
+  @Column({ type: 'jsonb' })
+  settings!: Record<string, any>;
 
-    @Column()
-    userId!: string;
-
-    @CreateDateColumn()
-    createdAt!: Date;
-
-    @UpdateDateColumn()
-    updatedAt!: Date;
+  @CreateDateColumn()
+  createdAt!: Date;
 }

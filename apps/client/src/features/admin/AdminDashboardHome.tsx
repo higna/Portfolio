@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, Wrench, Award, Briefcase, Clock, ArrowRight, Plus,
-  User, Download, X, Activity as ActivityIcon, Settings2,
+  User, Download, Activity as ActivityIcon,
   FolderKanban, GraduationCap, Workflow, Zap, ShieldCheck,
   Server, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
@@ -10,6 +10,9 @@ import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { createLogger } from '../../lib/logger';
 import toast from 'react-hot-toast';
+
+const DashboardAnalytics = lazy(() => import('./DashboardAnalytics'));
+const QuickAddModal = lazy(() => import('./QuickAddModal'));
 
 const logger = createLogger('AdminDashboard');
 
@@ -72,125 +75,6 @@ function StatSkeleton() {
   );
 }
 
-function QuickAddModal({ onClose }: { onClose: () => void }) {
-  const [type, setType] = useState<'skill' | 'certification' | 'project'>('skill');
-  const [form, setForm] = useState<Record<string, any>>({});
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      if (type === 'skill') {
-        await api.post('/portfolio/skills', {
-          name: form.name,
-          category: form.category || 'OTHER',
-          proficiency: Number(form.proficiency || 3),
-        });
-      } else if (type === 'certification') {
-        await api.post('/portfolio/certifications', {
-          name: form.name,
-          issuer: form.issuer,
-          date: form.date || new Date().toISOString(),
-          order: 0,
-        });
-      } else {
-        await api.post('/portfolio/projects', {
-          title: form.title,
-          slug: form.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          description: form.description || '',
-          techStack: (form.techStack || '').split(',').map((t: string) => t.trim()).filter(Boolean),
-          liveUrl: form.liveUrl || null,
-          githubUrl: form.githubUrl || null,
-          isFeatured: Boolean(form.isFeatured),
-          order: 0,
-        });
-      }
-      toast.success(`${type} added successfully`);
-      onClose();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to add');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-base-100 rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">Quick Add</h3>
-          <button onClick={onClose} className="btn btn-ghost btn-sm btn-circle">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="tabs tabs-boxed mb-4">
-          {(['skill', 'certification', 'project'] as const).map((t) => (
-            <button
-              key={t}
-              className={`tab tab-sm ${type === t ? 'tab-active' : ''}`}
-              onClick={() => { setType(t); setForm({}); }}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {type === 'skill' && (
-            <>
-              <input placeholder="Skill name" required className="input input-bordered w-full"
-                value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <input placeholder="Category (e.g. PROGRAMMING)" className="input input-bordered w-full"
-                value={form.category || ''} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-              <input type="number" min={1} max={5} placeholder="Proficiency (1-5)" className="input input-bordered w-full"
-                value={form.proficiency || ''} onChange={(e) => setForm({ ...form, proficiency: e.target.value })} />
-            </>
-          )}
-          {type === 'certification' && (
-            <>
-              <input placeholder="Certification name" required className="input input-bordered w-full"
-                value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <input placeholder="Issuer" required className="input input-bordered w-full"
-                value={form.issuer || ''} onChange={(e) => setForm({ ...form, issuer: e.target.value })} />
-              <input type="date" className="input input-bordered w-full"
-                value={form.date || ''} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-            </>
-          )}
-          {type === 'project' && (
-            <>
-              <input placeholder="Project title" required className="input input-bordered w-full"
-                value={form.title || ''} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              <textarea placeholder="Description" className="textarea textarea-bordered w-full"
-                value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              <input placeholder="Tech stack (comma separated)" className="input input-bordered w-full"
-                value={form.techStack || ''} onChange={(e) => setForm({ ...form, techStack: e.target.value })} />
-              <input placeholder="Live URL" className="input input-bordered w-full"
-                value={form.liveUrl || ''} onChange={(e) => setForm({ ...form, liveUrl: e.target.value })} />
-              <input placeholder="GitHub URL" className="input input-bordered w-full"
-                value={form.githubUrl || ''} onChange={(e) => setForm({ ...form, githubUrl: e.target.value })} />
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="checkbox checkbox-sm"
-                  checked={Boolean(form.isFeatured)} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} />
-                <span>Featured project</span>
-              </label>
-            </>
-          )}
-
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" disabled={submitting} className="btn btn-primary btn-sm">
-              {submitting ? <span className="loading loading-spinner"></span> : 'Save'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminDashboardHome() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -219,6 +103,28 @@ export default function AdminDashboardHome() {
       }
     };
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const eventSource = new EventSource(`${import.meta.env.VITE_API_URL || 'http://localhost:2500'}/dashboard/events?token=${token}`);
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'pipeline.status') {
+        setPipelineStatus((prev) => ({
+          ...prev,
+          [data.payload.scriptName]: {
+            status: data.payload.status,
+            time: data.payload.time,
+          },
+        }));
+      }
+    };
+    eventSource.onerror = () => {
+      eventSource.close();
+    };
+    return () => eventSource.close();
   }, []);
 
   const handleExportAll = async () => {
@@ -258,7 +164,6 @@ export default function AdminDashboardHome() {
 
   return (
     <div className="relative max-w-7xl w-full space-y-8">
-      {/* Background pattern */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
         style={{
@@ -267,9 +172,8 @@ export default function AdminDashboardHome() {
         }}
       />
 
-      {/* Hero Header */}
-      <div className="card bg-gradient-to-br from-base-100 to-base-200 border border-base-content/10 shadow-lg p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-secondary" />
+      <div className="card bg-linear-to-br from-base-100 to-base-200 border border-base-content/10 shadow-lg p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary via-accent to-secondary" />
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-center gap-5">
@@ -305,7 +209,6 @@ export default function AdminDashboardHome() {
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {loading
           ? [1, 2, 3, 4].map((i) => <StatSkeleton key={i} />)
@@ -330,9 +233,11 @@ export default function AdminDashboardHome() {
             ))}
       </div>
 
-      {/* Main two-column layout */}
+      <Suspense fallback={<div className="h-72 skeleton animate-pulse rounded-xl" />}>
+        <DashboardAnalytics />
+      </Suspense>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Activity Feed (larger column) */}
         <div className="lg:col-span-2 card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
           <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
             <ActivityIcon className="w-5 h-5 text-base-content/50" /> Activity Feed
@@ -379,7 +284,6 @@ export default function AdminDashboardHome() {
           </div>
         </div>
 
-        {/* Right column: Quick Links + System Status */}
         <div className="space-y-6">
           <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
             <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
@@ -430,7 +334,6 @@ export default function AdminDashboardHome() {
             </div>
           </div>
 
-          {/* System Health Card */}
           <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
             <h4 className="text-sm font-semibold text-base-content/70 flex items-center gap-2 mb-4">
               <ShieldCheck className="w-4 h-4 text-emerald-500" /> System Health
@@ -457,8 +360,11 @@ export default function AdminDashboardHome() {
         </div>
       </div>
 
-      {/* Quick Add Modal */}
-      {showQuickAdd && <QuickAddModal onClose={() => setShowQuickAdd(false)} />}
+      {showQuickAdd && (
+        <Suspense fallback={null}>
+          <QuickAddModal onClose={() => setShowQuickAdd(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }

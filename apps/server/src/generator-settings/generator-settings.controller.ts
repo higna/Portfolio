@@ -1,14 +1,4 @@
-import {
-    Controller,
-    Post,
-    Get,
-    Put,
-    Delete,
-    Param,
-    Body,
-    Req,
-    UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GeneratorSettingsService } from './generator-settings.service';
@@ -16,37 +6,26 @@ import { GeneratorSettingsService } from './generator-settings.service';
 @Controller('generator-settings')
 @UseGuards(JwtAuthGuard)
 export class GeneratorSettingsController {
-    constructor(private readonly settingsService: GeneratorSettingsService) { }
+  constructor(private readonly service: GeneratorSettingsService) {}
 
-    @Post()
-    async create(@Body() body: { name: string; settings: any }, @Req() req: Request) {
-        const userId = (req as any).user.id;
-        return this.settingsService.create({ ...body, userId });
-    }
+  @Get()
+  async getSettings(@Req() req: Request) {
+    const userId = (req as any).user.id;
+    return this.service.getForUser(userId);
+  }
 
-    @Get()
-    async list(@Req() req: Request) {
-        const userId = (req as any).user.id;
-        return this.settingsService.findAllByUser(userId);
-    }
+  @Post()
+  async createSetting(
+    @Req() req: Request,
+    @Body() body: { name: string; settings: Record<string, any> },
+  ) {
+    const userId = (req as any).user.id;
+    return this.service.create(userId, body.name, body.settings);
+  }
 
-    @Get(':id')
-    async get(@Param('id') id: string, @Req() req: Request) {
-        const userId = (req as any).user.id;
-        return this.settingsService.findOne(id, userId);
-    }
-
-    @Put(':id')
-    async update(@Param('id') id: string, @Body() body: any, @Req() req: Request) {
-        const userId = (req as any).user.id;
-        await this.settingsService.update(id, userId, body);
-        return this.settingsService.findOne(id, userId);
-    }
-
-    @Delete(':id')
-    async delete(@Param('id') id: string, @Req() req: Request) {
-        const userId = (req as any).user.id;
-        await this.settingsService.delete(id, userId);
-        return { success: true };
-    }
+  @Delete(':id')
+  async deleteSetting(@Req() req: Request, @Param('id') id: string) {
+    const userId = (req as any).user.id;
+    return this.service.delete(id, userId);
+  }
 }

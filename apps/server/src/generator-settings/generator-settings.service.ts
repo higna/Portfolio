@@ -1,33 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GeneratorSettings } from './generator-settings.entity';
+import { GeneratorSetting } from './generator-settings.entity';
 
 @Injectable()
 export class GeneratorSettingsService {
   constructor(
-    @InjectRepository(GeneratorSettings)
-    private readonly settingsRepo: Repository<GeneratorSettings>,
+    @InjectRepository(GeneratorSetting)
+    private readonly repo: Repository<GeneratorSetting>,
   ) {}
 
-  create(data: { name: string; settings: any; userId: string }) {
-    const setting = this.settingsRepo.create(data);
-    return this.settingsRepo.save(setting);
+  async getForUser(userId: string) {
+    return this.repo.find({ where: { user: { id: userId } }, order: { createdAt: 'DESC' } });
   }
 
-  findAllByUser(userId: string) {
-    return this.settingsRepo.find({ where: { userId }, order: { createdAt: 'DESC' } });
+  async create(userId: string, name: string, settings: Record<string, any>) {
+    const setting = this.repo.create({ user: { id: userId }, name, settings });
+    return this.repo.save(setting);
   }
 
-  findOne(id: string, userId: string) {
-    return this.settingsRepo.findOne({ where: { id, userId } });
-  }
-
-  update(id: string, userId: string, attrs: Partial<GeneratorSettings>) {
-    return this.settingsRepo.update({ id, userId }, attrs);
-  }
-
-  delete(id: string, userId: string) {
-    return this.settingsRepo.delete({ id, userId });
+  async delete(id: string, userId: string) {
+    await this.repo.delete({ id, user: { id: userId } });
+    return { success: true };
   }
 }

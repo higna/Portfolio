@@ -36,5 +36,17 @@
         "imageUrl": null,
         "link": "/barcode-generator",
         "isLocal": true
+    },
+    {
+        "id": "barcode-interpreter",
+        "title": "QR / Barcode Interpreter",
+        "description": "Interprete QR codes and barcodes for items.",
+        "techStack": [
+            "QR",
+            "Tool"
+        ],
+        "imageUrl": null,
+        "link": "/barcode-interpreter",
+        "isLocal": true
     }
 ]

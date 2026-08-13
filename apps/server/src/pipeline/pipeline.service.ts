@@ -5,6 +5,10 @@ import { join } from 'path';
 import { existsSync, writeFileSync, unlinkSync } from 'fs';
 import { tmpdir } from 'os';
 import { Readable } from 'stream';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+import { EventsService } from '../common/events/events.service';
+import { UserRole } from '../users/entities/user.entity';
 
 @Injectable()
 export class PipelineService {
@@ -13,7 +17,11 @@ export class PipelineService {
   private readonly configDir: string;
   private readonly lastRun = new Map<string, { status: string; time: string }>();
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly notificationsService: NotificationsService,
+    private readonly eventsService: EventsService,
+  ) {
     this.pipelinesDir = join(process.cwd(), 'worker', 'scripts', 'pipelines');
     this.configDir = join(process.cwd(), 'worker', 'config');
   }
@@ -90,10 +98,28 @@ export class PipelineService {
 
     pythonProcess.on('close', (exitCode) => {
       try { unlinkSync(tempCredsPath); } catch { }
+
       this.lastRun.set(scriptName, {
         status: exitCode === 0 ? 'success' : 'failed',
         time: new Date().toISOString(),
       });
+
+      // Emit pipeline status event (for dashboard)
+      this.eventsService.emit('pipeline.status', {
+        scriptName,
+        status: exitCode === 0 ? 'success' : 'failed',
+        time: new Date().toISOString(),
+      });
+
+      // Create notification for superadmin
+      this.notificationsService.createNotification({
+        role: UserRole.SUPERADMIN,
+        type: exitCode === 0 ? NotificationType.SUCCESS : NotificationType.ERROR,
+        title: `Pipeline ${scriptName}`,
+        message: exitCode === 0
+          ? 'Pipeline completed successfully'
+          : 'Pipeline execution failed',
+      }).catch(err => this.logger.error(`Notification failed: ${err.message}`));
 
       if (exitCode !== 0) {
         this.logger.error(`Pipeline script exited with code ${exitCode}`);

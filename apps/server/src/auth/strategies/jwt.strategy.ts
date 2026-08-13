@@ -13,7 +13,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new InternalServerErrorException('JWT_SECRET not set in environment');
     }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (req) => req?.query?.token ?? null,
+      ]),
       ignoreExpiration: false,
       secretOrKey: secret,
     });

@@ -52,8 +52,7 @@ import {
   CampaignList,
 } from "./features/admin";
 
-import { BarcodeGenerator, CampaignFill, ProjectsPage } from "./features/projects";
-import { ImageToPdf, PdfMerger } from "./features/projects/pdf";
+import { PdfMerger, ImageToPdf, CampaignFill, ProjectsPage, BarcodeGenerator, BarcodeInterpreter } from "./features/projects";
 import { DashboardChat, DashboardHome, ProfilePage } from "./features/dashboard";
 
 /* Placeholder public pages */
@@ -121,6 +120,8 @@ export default function AppRouter() {
             <Route path="/dashboard/campaign" element={<CampaignList />} />
             <Route path="/dashboard/campaign/create" element={<CampaignCreator />} />
             <Route path="/dashboard/campaign/edit/:id" element={<CampaignCreator />} />
+            <Route path="/dashboard/barcode/generator" element={<BarcodeGenerator />} />
+              <Route path="/dashboard/barcode/interpreter" element={<BarcodeInterpreter />} />
 
             {/* Admin protected dashboard routes */}
             <Route element={<RequireRole roles={["SUPERADMIN"]} />}>
@@ -134,6 +135,7 @@ export default function AppRouter() {
               <Route path="/dashboard/data/download" element={<AdminDataDownload />} />
               <Route path="/dashboard/data/pipeline" element={<AdminDataPipeline />} />
               <Route path="/dashboard/barcode/generator" element={<BarcodeGenerator />} />
+              <Route path="/dashboard/barcode/interpreter" element={<BarcodeInterpreter />} />
             </Route>
           </Route>
         </Route>
@@ -150,6 +152,7 @@ export default function AppRouter() {
           <Route path="/pdf/images-to-pdf" element={<ImageToPdf />} />
           <Route path="/campaign/:id" element={<CampaignFill />} />
           <Route path="/barcode-generator" element={<BarcodeGenerator />} />
+          <Route path="/barcode-interpreter" element={<BarcodeInterpreter />} />
         </Route>
 
         {/* 404 catch-all */}
