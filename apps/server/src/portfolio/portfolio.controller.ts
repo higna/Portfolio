@@ -2,6 +2,7 @@ import {
   Get,
   Put,
   Post,
+  Res,
   Body,
   Query,
   Param,
@@ -10,6 +11,7 @@ import {
   Controller,
   BadRequestException,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -171,6 +173,16 @@ export class PortfolioController {
   @Roles(UserRole.SUPERADMIN)
   async deleteCertification(@Param('id') id: string) {
     return this.portfolioService.deleteCertification(id);
+  }
+
+  @Get('export-seed')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async exportSeed(@Res() res: Response) {
+    const content = await this.portfolioService.exportCvSeed();
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Disposition', 'attachment; filename="cv-data.ts"');
+    res.send(content);
   }
 
   @Post('upload-project-image')

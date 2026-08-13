@@ -24,5 +24,17 @@
         "imageUrl": null,
         "link": "/pdf/images-to-pdf",
         "isLocal": true
+    },
+    {
+        "id": "barcode-generator",
+        "title": "QR / Barcode Generator",
+        "description": "Generate QR codes and barcodes for single items.",
+        "techStack": [
+            "QR",
+            "Tool"
+        ],
+        "imageUrl": null,
+        "link": "/barcode-generator",
+        "isLocal": true
     }
 ]

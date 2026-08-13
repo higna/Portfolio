@@ -5,6 +5,7 @@ import SkillsScroller from "./SkillsScroller";
 import { createLogger } from "../../lib/logger";
 import FeaturedProjects from "./FeaturedProjects";
 import ExperienceTimeline from "./ExperienceTimeline";
+import Certifications from "./Certifications";
 
 const logger = createLogger("HomePage");
 
@@ -16,6 +17,7 @@ export default function HomePage() {
       <MetricsCounter />
       <ExperienceTimeline />
       <SkillsScroller />
+      <Certifications />
       <FeaturedProjects />
       <CTA />
     </div>

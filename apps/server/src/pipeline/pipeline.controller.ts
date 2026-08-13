@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Get, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Res,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { PipelineService } from './pipeline.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,7 +26,8 @@ export class PipelineController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
   async runPipeline(
-    @Body() body: {
+    @Body()
+    body: {
       scriptName: string;
       formId: string;
       sheetName: string;
@@ -40,8 +48,15 @@ export class PipelineController {
     stream.pipe(res);
   }
 
+  @Get('status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async getStatuses() {
+    return this.pipelineService.getLastRunStatuses();
+  }
+
   @Get('download-cocoa-eval')
-  @UseGuards(PublicGuard)
+  @UseGuards(PublicGuard) // overrides class‑level guards – anyone can access
   async downloadCocoaEvalCharts(@Res() res: Response) {
     const outputDir = join(process.cwd(), 'worker', 'output', 'cocoa_eval');
     if (!existsSync(outputDir)) {
@@ -50,10 +65,15 @@ export class PipelineController {
 
     const archive = archiver('zip', { zlib: { level: 9 } });
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="cocoa_eval_charts.zip"');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="cocoa_eval_charts.zip"',
+    );
 
     archive.on('end', () => {
-      try { rmdirSync(outputDir, { recursive: true }); } catch {}
+      try {
+        rmdirSync(outputDir, { recursive: true });
+      } catch {}
     });
 
     archive.pipe(res);

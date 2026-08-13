@@ -16,6 +16,7 @@ import { PdfModule } from './pdf/pdf.module';
 import { HealthPingService } from './common/health-ping.service';
 import { RequestLoggerMiddleware } from './common/request-logger.middleware';
 import { CampaignModule } from './campaign/campaign.module';
+import { GeneratorSettingsModule } from './generator-settings/generator-settings.module';
 
 @Module({
   imports: [
@@ -43,7 +44,8 @@ import { CampaignModule } from './campaign/campaign.module';
     OnaModule,
     PipelineModule,
     PdfModule,
-    CampaignModule
+    CampaignModule,
+    GeneratorSettingsModule
   ],
   controllers: [AppController],
   providers: [AppService, HealthPingService],

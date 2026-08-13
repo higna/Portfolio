@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PortfolioModule } from '../portfolio/portfolio.module';
 import { User } from '../users/entities/user.entity';
 import { Skill } from '../portfolio/entities/skill.entity';
 import { Certification } from '../portfolio/entities/certification.entity';
@@ -8,7 +9,10 @@ import { DashboardService } from './dashboard.service';
 import { DashboardController } from './dashboard.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Skill, Certification, Project])],
+  imports: [
+    TypeOrmModule.forFeature([User, Skill, Certification, Project]),
+    PortfolioModule,
+  ],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

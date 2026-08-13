@@ -19,6 +19,83 @@ export class PortfolioService {
     @InjectRepository(Certification) private certRepo: Repository<Certification>,
   ) { }
 
+  async exportCvSeed(): Promise<string> {
+    const profile = await this.profileRepo.findOne({ where: {} });
+    const experiences = await this.expRepo.find({ order: { order: 'ASC' } });
+    const educations = await this.eduRepo.find({ order: { order: 'ASC' } });
+    const skills = await this.skillRepo.find();
+    const projects = await this.projRepo.find({ order: { order: 'ASC' } });
+    const certifications = await this.certRepo.find({ order: { order: 'ASC' } });
+
+    // Build profile object
+    const profileObj = {
+      fullName: profile?.fullName || '',
+      phone: profile?.phone || null,
+      linkedinUrl: profile?.linkedinUrl || null,
+      githubUrl: profile?.githubUrl || null,
+      portfolioUrl: profile?.portfolioUrl || null,
+      professionalSummary: profile?.professionalSummary || '',
+      languages: profile?.languages || [],
+    };
+
+    // Build experiences
+    const experiencesArr = experiences.map(e => ({
+      jobTitle: e.jobTitle,
+      company: e.company,
+      description: e.description,
+      startDate: e.startDate,
+      endDate: e.endDate,
+      isCurrent: e.isCurrent,
+      order: e.order,
+    }));
+
+    // Build educations
+    const educationsArr = educations.map(e => ({
+      degree: e.degree,
+      institution: e.institution,
+      startDate: e.startDate,
+      endDate: e.endDate,
+      grade: e.grade,
+      order: e.order,
+    }));
+
+    // Build skills
+    const skillsArr = skills.map(s => ({
+      name: s.name,
+      category: s.category,
+      proficiency: s.proficiency,
+    }));
+
+    // Build projects
+    const projectsArr = projects.map(p => ({
+      title: p.title,
+      slug: p.slug,
+      description: p.description,
+      techStack: p.techStack,
+      liveUrl: p.liveUrl,
+      githubUrl: p.githubUrl,
+      imageUrl: p.imageUrl,
+      isFeatured: p.isFeatured,
+      order: p.order,
+    }));
+
+    // Build certifications
+    const certsArr = certifications.map(c => ({
+      name: c.name,
+      issuer: c.issuer,
+      date: c.date,
+      order: c.order,
+    }));
+
+    // Generate TypeScript content
+    return `export const cvProfile = ${JSON.stringify(profileObj, null, 2)};\n\n` +
+      `export const cvExperiences = ${JSON.stringify(experiencesArr, null, 2)};\n\n` +
+      `export const cvEducations = ${JSON.stringify(educationsArr, null, 2)};\n\n` +
+      `export const cvSkills = ${JSON.stringify(skillsArr, null, 2)};\n\n` +
+      `export const cvProjects = ${JSON.stringify(projectsArr, null, 2)};\n\n` +
+      `export const cvCertifications = ${JSON.stringify(certsArr, null, 2)};`;
+  }
+
   async getProfile() {
     return this.profileRepo.findOne({ where: {} });
   }
@@ -102,7 +179,7 @@ export class PortfolioService {
     }
     return this.projRepo.find({ order: { order: 'ASC' } });
   }
-  
+
   async addProject(data: Partial<Project>) {
     const project = this.projRepo.create(data);
     return this.projRepo.save(project);

@@ -11,6 +11,7 @@ export class PipelineService {
   private readonly logger = new Logger(PipelineService.name);
   private readonly pipelinesDir: string;
   private readonly configDir: string;
+  private readonly lastRun = new Map<string, { status: string; time: string }>();
 
   constructor(private readonly configService: ConfigService) {
     this.pipelinesDir = join(process.cwd(), 'worker', 'scripts', 'pipelines');
@@ -40,32 +41,26 @@ export class PipelineService {
 
     const apiKey = this.configService.get<string>('ONA_API_KEY');
     const baseUrl = this.configService.get<string>('ONA_BASE_URL', 'https://api.ona.io/api/v1');
-
-    // ──── Fix Google credentials newlines ────
     const credsRaw = this.configService.get<string>('GOOGLE_SERVICE_ACCOUNT_JSON');
+
     if (!apiKey || !credsRaw) {
-      throw new Error('Missing required configuration (ONA_API_KEY or GOOGLE_SERVICE_ACCOUNT_JSON)');
+      throw new Error('Missing required configuration');
     }
 
-    // Parse the JSON to an object, then fix the private key
+    // Parse creds and fix private key newlines
     let creds: any;
     try {
       creds = JSON.parse(credsRaw);
     } catch {
       throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON');
     }
-
     if (creds.private_key) {
-      // Turn literal \n into real newlines – this makes the PEM‑valid key
       creds.private_key = creds.private_key.replace(/\\n/g, '\n');
     }
-
-    // Re‑serialize to a clean JSON string (newlines become \n again, which is correct JSON)
     const fixedJson = JSON.stringify(creds);
 
     const tempCredsPath = join(tmpdir(), `gcp-creds-${Date.now()}.json`);
     writeFileSync(tempCredsPath, fixedJson, 'utf-8');
-    // ────────────────────────────────────────
 
     const args = [
       scriptPath,
@@ -93,10 +88,15 @@ export class PipelineService {
       }
     });
 
-    pythonProcess.on('close', (code) => {
+    pythonProcess.on('close', (exitCode) => {
       try { unlinkSync(tempCredsPath); } catch { }
-      if (code !== 0) {
-        this.logger.error(`Pipeline script exited with code ${code}`);
+      this.lastRun.set(scriptName, {
+        status: exitCode === 0 ? 'success' : 'failed',
+        time: new Date().toISOString(),
+      });
+
+      if (exitCode !== 0) {
+        this.logger.error(`Pipeline script exited with code ${exitCode}`);
         stdoutStream.push(
           JSON.stringify({ step: 'error', status: 'failed', message: 'Pipeline execution failed' }) + '\n',
         );
@@ -106,10 +106,18 @@ export class PipelineService {
 
     pythonProcess.on('error', (err) => {
       try { unlinkSync(tempCredsPath); } catch { }
+      this.lastRun.set(scriptName, {
+        status: 'failed',
+        time: new Date().toISOString(),
+      });
       this.logger.error(`Failed to spawn Python process: ${err.message}`);
       stdoutStream.destroy(err);
     });
 
     return stdoutStream;
+  }
+
+  getLastRunStatuses() {
+    return Object.fromEntries(this.lastRun);
   }
 }

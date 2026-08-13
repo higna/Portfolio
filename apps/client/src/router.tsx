@@ -52,7 +52,7 @@ import {
   CampaignList,
 } from "./features/admin";
 
-import { CampaignFill, ProjectsPage } from "./features/projects";
+import { BarcodeGenerator, CampaignFill, ProjectsPage } from "./features/projects";
 import { ImageToPdf, PdfMerger } from "./features/projects/pdf";
 import { DashboardChat, DashboardHome, ProfilePage } from "./features/dashboard";
 
@@ -133,6 +133,7 @@ export default function AppRouter() {
               <Route path="/dashboard/projects" element={<AdminProjects />} />
               <Route path="/dashboard/data/download" element={<AdminDataDownload />} />
               <Route path="/dashboard/data/pipeline" element={<AdminDataPipeline />} />
+              <Route path="/dashboard/barcode/generator" element={<BarcodeGenerator />} />
             </Route>
           </Route>
         </Route>
@@ -148,6 +149,7 @@ export default function AppRouter() {
           <Route path="/pdf/merge" element={<PdfMerger />} />
           <Route path="/pdf/images-to-pdf" element={<ImageToPdf />} />
           <Route path="/campaign/:id" element={<CampaignFill />} />
+          <Route path="/barcode-generator" element={<BarcodeGenerator />} />
         </Route>
 
         {/* 404 catch-all */}

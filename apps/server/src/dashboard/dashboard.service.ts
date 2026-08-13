@@ -22,6 +22,59 @@ export class DashboardService {
       this.certRepo.count(),
       this.projRepo.count(),
     ]);
-    return { users, skills, certifications, projects };
+
+    const recentUsers = await this.userRepo.find({
+      order: { createdAt: 'DESC' },
+      take: 5,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        picture: true,
+        createdAt: true,
+      },
+    });
+
+    return { users, skills, certifications, projects, recentUsers };
+  }
+
+  async getAdminActivity() {
+    const [users, projects] = await Promise.all([
+      this.userRepo.find({
+        order: { createdAt: 'DESC' },
+        take: 5,
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          picture: true,
+          createdAt: true,
+        },
+      }),
+      this.projRepo.find({
+        order: { updatedAt: 'DESC' },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          updatedAt: true,
+        },
+      }),
+    ]);
+    return { users, projects };
+  }
+
+  async getUsersForExport() {
+    const users = await this.userRepo.find({
+      order: { createdAt: 'DESC' },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    return users;
   }
 }
