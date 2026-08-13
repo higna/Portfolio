@@ -2,10 +2,10 @@ import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
-import { ScheduleModule } from '@nestjs/schedule';
 import { UsersModule } from '../users/users.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { MailModule } from '../mail/mail.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -18,7 +18,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     PassportModule,
     CloudinaryModule,
     MailModule,
-    ScheduleModule.forRoot(),
+    NotificationsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

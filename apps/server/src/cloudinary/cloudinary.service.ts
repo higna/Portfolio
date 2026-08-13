@@ -1,5 +1,6 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
+import sharp from 'sharp';
 
 export interface CloudinaryUploadResult {
   url: string;
@@ -11,12 +12,25 @@ export class CloudinaryService {
   private readonly logger = new Logger(CloudinaryService.name);
 
   async uploadAvatar(fileBuffer: Buffer, fileName: string): Promise<CloudinaryUploadResult> {
+    // Resize and compress image to stay under Cloudinary's 10MB limit
+    let optimizedBuffer: Buffer;
+    try {
+      optimizedBuffer = await sharp(fileBuffer)
+        .resize(800, 800, { fit: 'cover' })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+    } catch (error: any) {
+      this.logger.error(`Image optimization failed: ${error.message}`);
+      throw new InternalServerErrorException('Image processing failed');
+    }
+
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'portfolio/avatars',
           public_id: `${fileName}-${Date.now()}`,
           resource_type: 'image',
+          overwrite: true,
         },
         (error, result) => {
           if (error || !result) {
@@ -29,7 +43,7 @@ export class CloudinaryService {
           });
         },
       );
-      uploadStream.end(fileBuffer);
+      uploadStream.end(optimizedBuffer);
     });
   }
 
@@ -57,6 +71,16 @@ export class CloudinaryService {
   }
 
   async uploadProjectImage(fileBuffer: Buffer, fileName: string): Promise<string> {
+    let optimizedBuffer: Buffer;
+    try {
+      optimizedBuffer = await sharp(fileBuffer)
+        .resize(1200, 800, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+    } catch {
+      optimizedBuffer = fileBuffer;
+    }
+
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -72,27 +96,37 @@ export class CloudinaryService {
           resolve(result.secure_url);
         },
       );
-      uploadStream.end(fileBuffer);
+      uploadStream.end(optimizedBuffer);
     });
   }
-  
+
   async uploadCampaignImage(fileBuffer: Buffer, fileName: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: 'portfolio/campaigns',
-        public_id: `${fileName}-${Date.now()}`,
-        resource_type: 'image',
-      },
-      (error, result) => {
-        if (error || !result) {
-          this.logger.error(`Cloudinary upload failed: ${error?.message}`);
-          return reject(new InternalServerErrorException('Image upload failed'));
-        }
-        resolve(result.secure_url);
-      },
-    );
-    uploadStream.end(fileBuffer);
-  });
-}
+    let optimizedBuffer: Buffer;
+    try {
+      optimizedBuffer = await sharp(fileBuffer)
+        .resize(1600, 900, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+    } catch {
+      optimizedBuffer = fileBuffer;
+    }
+
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'portfolio/campaigns',
+          public_id: `${fileName}-${Date.now()}`,
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error || !result) {
+            this.logger.error(`Cloudinary upload failed: ${error?.message}`);
+            return reject(new InternalServerErrorException('Image upload failed'));
+          }
+          resolve(result.secure_url);
+        },
+      );
+      uploadStream.end(optimizedBuffer);
+    });
+  }
 }

@@ -1,15 +1,6 @@
 import {
-    Controller,
-    Get,
-    Put,
-    Delete,
-    Body,
-    Param,
-    UseGuards,
-    UseInterceptors,
-    ClassSerializerInterceptor,
-    BadRequestException,
-    NotFoundException,
+  Controller, Get, Put, Delete, Body, Param, UseGuards,
+  UseInterceptors, ClassSerializerInterceptor, BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,100 +9,108 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UsersService } from './users.service';
 import { UserRole } from './entities/user.entity';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+
+function extractCloudinaryPublicId(url: string): string | null {
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)\.\w+$/);
+  return match ? match[1] : null;
+}
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
-    /* Get current user profile */
-    @Get('me')
-    @UseGuards(JwtAuthGuard)
-    @UseInterceptors(ClassSerializerInterceptor)
-    async getProfile(@CurrentUser() user: { id: string }) {
-        return this.usersService.findById(user.id);
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  async getProfile(@CurrentUser() user: { id: string }) {
+    return this.usersService.findById(user.id);
+  }
+
+  @Put('me')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  async updateProfile(
+    @CurrentUser() user: { id: string },
+    @Body() attrs: Record<string, any>,
+  ) {
+    const currentUser = await this.usersService.findById(user.id);
+    if (!currentUser) throw new BadRequestException('User not found');
+
+    const allowed = ['fullName', 'picture'];
+    const filtered: Record<string, any> = {};
+    for (const key of allowed) {
+      if (attrs[key] !== undefined) filtered[key] = attrs[key];
     }
 
-    /* Update current user profile (name, picture) */
-    @Put('me')
-    @UseGuards(JwtAuthGuard)
-    @UseInterceptors(ClassSerializerInterceptor)
-    async updateProfile(
-        @CurrentUser() user: { id: string },
-        @Body() attrs: Record<string, any>,
-    ) {
-        const allowed = ['fullName', 'picture'];
-        const filtered: Record<string, any> = {};
-        for (const key of allowed) {
-            if (attrs[key] !== undefined) filtered[key] = attrs[key];
-        }
-        return this.usersService.update(user.id, filtered);
+    if (filtered.picture && currentUser.picture && filtered.picture !== currentUser.picture) {
+      const oldPublicId = extractCloudinaryPublicId(currentUser.picture);
+      if (oldPublicId) {
+        await this.cloudinaryService.deleteImage(oldPublicId).catch(() => {});
+      }
     }
 
-    /* Change current user password */
-    @Put('me/password')
-    @UseGuards(JwtAuthGuard)
-    async changePassword(
-        @CurrentUser() user: { id: string },
-        @Body() body: { currentPassword: string; newPassword: string },
-    ) {
-        const currentUser = await this.usersService.findById(user.id);
-        if (!currentUser || !currentUser.password) {
-            throw new BadRequestException('Cannot change password');
-        }
-        const isValid = await bcrypt.compare(body.currentPassword, currentUser.password);
-        if (!isValid) {
-            throw new BadRequestException('Current password is incorrect');
-        }
-        const hashed = await bcrypt.hash(body.newPassword, 10);
-        await this.usersService.updatePassword(user.id, hashed);
-        return { message: 'Password changed successfully' };
-    }
+    return this.usersService.update(user.id, filtered);
+  }
 
-    /* Delete current user account */
-    @Delete('me')
-    @UseGuards(JwtAuthGuard)
-    async deleteProfile(@CurrentUser() user: { id: string }) {
-        await this.usersService.remove(user.id);
-        return { message: 'Account deleted' };
+  @Put('me/password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @CurrentUser() user: { id: string },
+    @Body() body: { currentPassword: string; newPassword: string },
+  ) {
+    const currentUser = await this.usersService.findById(user.id);
+    if (!currentUser || !currentUser.password) {
+      throw new BadRequestException('Cannot change password');
     }
+    const isValid = await bcrypt.compare(body.currentPassword, currentUser.password);
+    if (!isValid) throw new BadRequestException('Current password is incorrect');
+    const hashed = await bcrypt.hash(body.newPassword, 10);
+    await this.usersService.updatePassword(user.id, hashed);
+    return { message: 'Password changed successfully' };
+  }
 
-    /* Admin: get all users */
-    @Get()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.SUPERADMIN)
-    async getAllUsers() {
-        return this.usersService.findAll();
-    }
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  async deleteProfile(@CurrentUser() user: { id: string }) {
+    await this.usersService.remove(user.id);
+    return { message: 'Account deleted' };
+  }
 
-    /* Admin: get single user */
-    @Get(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.SUPERADMIN)
-    async getUserById(@Param('id') id: string) {
-        const user = await this.usersService.findById(id);
-        if (!user) throw new NotFoundException('User not found');
-        return user;
-    }
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async getAllUsers() {
+    return this.usersService.findAll();
+  }
 
-    /* Admin: delete a user */
-    @Delete(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.SUPERADMIN)
-    async deleteUser(@Param('id') id: string) {
-        await this.usersService.deleteUser(id);
-        return { message: 'User deleted' };
-    }
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async getUserById(@Param('id') id: string) {
+    return this.usersService.findById(id);
+  }
 
-    /* Admin: reset a user's password */
-    @Put(':id/password')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserRole.SUPERADMIN)
-    async adminResetPassword(
-        @Param('id') id: string,
-        @Body() body: { newPassword: string },
-    ) {
-        const hashed = await bcrypt.hash(body.newPassword, 10);
-        await this.usersService.updatePassword(id, hashed);
-        return { message: 'Password reset successfully' };
-    }
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async deleteUser(@Param('id') id: string) {
+    await this.usersService.deleteUser(id);
+    return { message: 'User deleted' };
+  }
+
+  @Put(':id/password')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async adminResetPassword(
+    @Param('id') id: string,
+    @Body() body: { newPassword: string },
+  ) {
+    const hashed = await bcrypt.hash(body.newPassword, 10);
+    await this.usersService.updatePassword(id, hashed);
+    return { message: 'Password reset successfully' };
+  }
 }

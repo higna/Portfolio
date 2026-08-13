@@ -1,11 +1,12 @@
 import {
   Controller, Post, Body, Get, Req, UseGuards, Res,
-  UseInterceptors, UploadedFile,
+  UseInterceptors, UploadedFile, BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -14,7 +15,10 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Post('signup')
   @UseInterceptors(FileInterceptor('file'))
@@ -50,9 +54,24 @@ export class AuthController {
     return this.authService.resetPassword(dto.token, dto.newPassword);
   }
 
+  @Post('upload-avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(@UploadedFile() file: any) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+    const result = await this.cloudinaryService.uploadAvatar(
+      file.buffer,
+      file.originalname.split('.')[0],
+    );
+    return { url: result.url };
+  }
+
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  googleAuth() { }
+  googleAuth() {
+    // initiates Google OAuth
+  }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))

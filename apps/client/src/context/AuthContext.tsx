@@ -1,5 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-  import type {ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react';
 import api from '../lib/api';
 import { createLogger } from '../lib/logger';
 import toast from 'react-hot-toast';
@@ -28,6 +33,7 @@ interface AuthContextType {
     file?: File,
   ) => Promise<string>;
   logout: () => void;
+  updateUser: (data: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,8 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     api.get('/users/me')
-      .then(res => { setUser(res.data); logger.log('Session restored'); })
-      .catch(() => { localStorage.removeItem('token'); })
+      .then((res) => {
+        setUser(res.data);
+        logger.log('Session restored');
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -86,8 +97,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast('You have been logged out.', { icon: '👋' });
   };
 
+  const updateUser = (data: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...data } : prev));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

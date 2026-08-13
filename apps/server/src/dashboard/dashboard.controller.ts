@@ -68,7 +68,7 @@ export class DashboardController {
   }
 
   @Get('events')
-  @Roles(UserRole.SUPERADMIN)
+  @Roles(UserRole.USER, UserRole.SUPERADMIN)
   async events(@Req() req: Request, @Res() res: Response) {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
