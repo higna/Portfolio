@@ -33,7 +33,11 @@ const typeConfig = {
   error: { icon: XCircle, className: 'text-red-500 bg-red-500/10' },
 };
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  transparent?: boolean;
+}
+
+export default function NotificationBell({ transparent = false }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -100,15 +104,12 @@ export default function NotificationBell() {
     if (!open) fetchNotifications();
   };
 
-  /*
-   * Determine navigation path based on notification content.
-   */
   const getNotificationPath = (notif: NotificationItem): string => {
     const title = notif.title.toLowerCase();
     const message = notif.message.toLowerCase();
 
     if (title.includes('pipeline') || message.includes('pipeline')) {
-      return '/dashboard/data/pipeline';
+      return '/dashboard/data/extraction';
     }
     if (title.includes('pdf') || message.includes('pdf')) {
       return '/dashboard/pdf/merge';
@@ -174,7 +175,9 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleOpen}
-        className="btn btn-ghost btn-circle relative"
+        className={`btn btn-ghost btn-circle relative ${
+          transparent ? 'text-white hover:text-[#D4AF37]' : 'text-base-content'
+        }`}
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />

@@ -7,6 +7,7 @@ import {
   Menu,
   X,
   LogOut,
+  LayoutDashboard,
   FolderKanban,
   Mail,
   Wrench,
@@ -14,14 +15,13 @@ import {
   Award,
   GraduationCap,
   FolderGit,
+  FileText,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
-import { createLogger } from "../../lib/logger";
 import UserDropdown from "./UserDropdown";
 import NotificationBell from "./NotificationBell";
-
-const logger = createLogger("Navbar");
 
 interface NavLink {
   label: string;
@@ -171,7 +171,6 @@ export default function Navbar() {
   }, [sidebarOpen]);
 
   const handleLogout = () => {
-    logger.log("User logged out");
     logout();
     navigate("/");
     setSidebarOpen(false);
@@ -189,7 +188,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Scroll progress bar */}
       <div
         className="fixed top-0 left-0 h-0.5 bg-primary z-50 transition-all duration-150 motion-reduce:transition-none"
         style={{ width: `${progress}%` }}
@@ -202,16 +200,14 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
             <Link
               to="/"
               className="text-xl font-bold text-primary tracking-tight rounded"
               aria-label="Home"
             >
-              HECTOR
+              <img src="/higna.png" alt="HECTOR" className="h-16 w-auto" />
             </Link>
 
-            {/* Desktop nav links */}
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link
@@ -231,25 +227,43 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Right side: theme + notifications + user (desktop) */}
             <div className="hidden md:flex items-center gap-2">
               <ThemeToggle
                 theme={theme}
                 onToggle={toggleTheme}
                 transparent={isHomeTransparent}
               />
-              {user && <NotificationBell />}
+              {user && <NotificationBell transparent={isHomeTransparent} />}
               <UserDropdown transparent={isHomeTransparent} />
             </div>
 
-            {/* Mobile header: theme + notifications + menu */}
             <div className="md:hidden flex items-center gap-2">
-              <ThemeToggle
-                theme={theme}
-                onToggle={toggleTheme}
-                transparent={isHomeTransparent}
-              />
-              {user && <NotificationBell />}
+              {user ? (
+                <Link
+                  to="/dashboard/profile"
+                  className={`btn btn-ghost btn-circle ${
+                    isHomeTransparent
+                      ? "text-white hover:text-[#D4AF37]"
+                      : "text-base-content"
+                  }`}
+                  aria-label="Profile"
+                >
+                  <User className="w-5 h-5" />
+                </Link>
+              ) : (
+                <Link
+                  to="/login"
+                  className={`btn btn-ghost btn-circle ${
+                    isHomeTransparent
+                      ? "text-white hover:text-[#D4AF37]"
+                      : "text-base-content"
+                  }`}
+                  aria-label="Login"
+                >
+                  <User className="w-5 h-5" />
+                </Link>
+              )}
+              {user && <NotificationBell transparent={isHomeTransparent} />}
               <button
                 ref={menuButtonRef}
                 onClick={() => setSidebarOpen(true)}
@@ -269,7 +283,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar */}
       <div
         id="mobile-sidebar"
         className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 motion-reduce:transition-none ${
@@ -289,141 +303,194 @@ export default function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label="Site menu"
-          className={`absolute right-0 top-0 h-full w-64 bg-base-100 shadow-2xl flex flex-col p-6 transition-transform duration-300 motion-reduce:transition-none ${
+          className={`absolute right-0 top-0 h-full w-72 bg-base-100 shadow-2xl flex flex-col transition-transform duration-300 motion-reduce:transition-none ${
             sidebarOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <button
-            onClick={closeSidebar}
-            className="btn btn-ghost btn-circle self-end mb-4"
-            aria-label="Close menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* User greeting */}
-          <div className="flex flex-col items-center gap-2 mb-6">
-            {user ? (
-              <>
+          {/* Fixed top area: close button + user greeting */}
+          <div className="p-4 border-b border-base-content/10 shrink-0">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-base-content">Menu</h2>
+              <button
+                onClick={closeSidebar}
+                className="btn btn-ghost btn-circle btn-sm"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {user && (
+              <div className="flex items-center gap-3 mt-3">
                 {user.picture ? (
                   <div className="avatar">
-                    <div className="w-16 h-16 rounded-full">
+                    <div className="w-10 h-10 rounded-full">
                       <img src={user.picture} alt={user.fullName || "User"} />
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-neutral text-neutral-content rounded-full w-16 h-16 flex items-center justify-center text-2xl">
+                  <div className="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold">
                     {user.fullName
                       ? user.fullName.charAt(0).toUpperCase()
                       : user.email.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className="text-sm font-medium truncate max-w-50">
-                  {user.fullName ? `Hello, ${user.fullName}` : user.email}
+                <div>
+                  <p className="text-sm font-medium truncate max-w-45">
+                    {user.fullName ? `Hello, ${user.fullName}` : user.email}
+                  </p>
+                  <p className="text-xs text-base-content/50">{user.email}</p>
+                </div>
+              </div>
+            )}
+            {!user && (
+              <div className="flex items-center gap-3 mt-3">
+                <div className="bg-neutral/20 rounded-full w-10 h-10 flex items-center justify-center">
+                  <User className="w-5 h-5 text-base-content/70" />
+                </div>
+                <span className="text-sm font-medium text-base-content/70">
+                  Guest
                 </span>
-              </>
-            ) : (
-              <div className="bg-neutral/20 rounded-full w-16 h-16 flex items-center justify-center">
-                <User className="w-8 h-8 text-neutral" />
               </div>
             )}
           </div>
 
-          {/* Main navigation */}
-          <div className="mb-4">
-            <p className="text-xs uppercase tracking-widest text-base-content/50 mb-2 px-4">
-              Navigate
-            </p>
-            <nav className="flex flex-col gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={closeSidebar}
-                  aria-current={isActive(link.path) ? "page" : undefined}
-                  className={`px-4 py-3 rounded-btn text-sm font-medium transition-colors ${
-                    isActive(link.path)
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-base-200"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+          {/* Scrollable middle area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            {/* Account section (authenticated) */}
+            {user && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-base-content/50 mb-2 px-4">
+                  Account
+                </p>
+                <nav className="flex flex-col gap-1">
+                  <Link
+                    to="/dashboard"
+                    onClick={closeSidebar}
+                    className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  >
+                    <LayoutDashboard className="w-4 h-4" /> Dashboard
+                  </Link>
+                  <Link
+                    to="/dashboard/profile"
+                    onClick={closeSidebar}
+                    className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" /> Profile
+                  </Link>
+                </nav>
+              </div>
+            )}
 
-          {/* Superadmin quick links */}
-          {user?.role === "SUPERADMIN" && (
-            <div className="mb-4">
+            {/* Main navigation */}
+            <div>
               <p className="text-xs uppercase tracking-widest text-base-content/50 mb-2 px-4">
-                Admin
+                Navigate
+              </p>
+              <nav className="flex flex-col gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={closeSidebar}
+                    aria-current={isActive(link.path) ? "page" : undefined}
+                    className={`px-4 py-2.5 rounded-btn text-sm font-medium transition-colors ${
+                      isActive(link.path)
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-base-200"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {/* Superadmin quick links */}
+            {user?.role === "SUPERADMIN" && (
+              <div>
+                <p className="text-xs uppercase tracking-widest text-base-content/50 mb-2 px-4">
+                  Admin
+                </p>
+                <nav className="flex flex-col gap-1">
+                  <Link
+                    to="/dashboard/certifications"
+                    onClick={closeSidebar}
+                    className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  >
+                    <Award className="w-4 h-4" /> Certifications
+                  </Link>
+                  <Link
+                    to="/dashboard/education"
+                    onClick={closeSidebar}
+                    className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  >
+                    <GraduationCap className="w-4 h-4" /> Education
+                  </Link>
+                  <Link
+                    to="/dashboard/experience"
+                    onClick={closeSidebar}
+                    className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  >
+                    <Briefcase className="w-4 h-4" /> Experience
+                  </Link>
+                  <Link
+                    to="/dashboard/skills"
+                    onClick={closeSidebar}
+                    className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  >
+                    <Wrench className="w-4 h-4" /> Skills
+                  </Link>
+                  <Link
+                    to="/dashboard/projects"
+                    onClick={closeSidebar}
+                    className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  >
+                    <FolderGit className="w-4 h-4" /> Projects
+                  </Link>
+                </nav>
+              </div>
+            )}
+
+            {/* Useful Links for everyone */}
+            <div>
+              <p className="text-xs uppercase tracking-widest text-base-content/50 mb-2 px-4">
+                Useful Links
               </p>
               <nav className="flex flex-col gap-1">
                 <Link
-                  to="/dashboard/certifications"
+                  to="/projects"
                   onClick={closeSidebar}
-                  className="px-4 py-3 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
                 >
-                  <Award className="w-4 h-4" /> Certifications
+                  <FolderKanban className="w-4 h-4" /> Projects
                 </Link>
                 <Link
-                  to="/dashboard/education"
+                  to="/contact"
                   onClick={closeSidebar}
-                  className="px-4 py-3 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
                 >
-                  <GraduationCap className="w-4 h-4" /> Education
+                  <Mail className="w-4 h-4" /> Contact
                 </Link>
                 <Link
-                  to="/dashboard/experience"
+                  to="/dashboard/pdf/merge"
                   onClick={closeSidebar}
-                  className="px-4 py-3 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
                 >
-                  <Briefcase className="w-4 h-4" /> Experience
+                  <FileText className="w-4 h-4" /> PDF Merger
                 </Link>
                 <Link
-                  to="/dashboard/skills"
+                  to="/dashboard/pdf/images-to-pdf"
                   onClick={closeSidebar}
-                  className="px-4 py-3 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
                 >
-                  <Wrench className="w-4 h-4" /> Skills
-                </Link>
-                <Link
-                  to="/dashboard/projects"
-                  onClick={closeSidebar}
-                  className="px-4 py-3 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
-                >
-                  <FolderGit className="w-4 h-4" /> Projects
+                  <ImageIcon className="w-4 h-4" /> Image to PDF
                 </Link>
               </nav>
             </div>
-          )}
-
-          {/* Public links */}
-          <div className="mb-4">
-            <p className="text-xs uppercase tracking-widest text-base-content/50 mb-2 px-4">
-              Links
-            </p>
-            <nav className="flex flex-col gap-1">
-              <Link
-                to="/projects"
-                onClick={closeSidebar}
-                className="px-4 py-3 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
-              >
-                <FolderKanban className="w-4 h-4" /> Projects
-              </Link>
-              <Link
-                to="/contact"
-                onClick={closeSidebar}
-                className="px-4 py-3 rounded-btn text-sm font-medium hover:bg-base-200 transition-colors flex items-center gap-2"
-              >
-                <Mail className="w-4 h-4" /> Contact
-              </Link>
-            </nav>
           </div>
 
-          {/* Auth actions */}
-          <div className="mt-auto space-y-2">
+          {/* Fixed bottom area: auth actions */}
+          <div className="p-4 border-t border-base-content/10 shrink-0 space-y-2">
             {user ? (
               <button
                 onClick={handleLogout}
