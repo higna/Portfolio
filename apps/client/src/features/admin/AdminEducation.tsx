@@ -126,7 +126,7 @@ export default function AdminEducation() {
       {showForm && (
         <div className="animate-slide-down">
           <form onSubmit={handleSubmit} className="card bg-base-100 border border-base-content/10 shadow-lg p-6 space-y-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary to-accent" />
             <h3 className="font-semibold text-lg flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-primary" />
               {editingId ? 'Edit Education' : 'Add Education'}

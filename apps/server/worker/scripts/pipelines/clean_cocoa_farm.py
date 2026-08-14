@@ -3,6 +3,7 @@ Cocoa Farm Registration pipeline.
 Streams step updates as JSON lines to stdout.
 Usage: python clean_cocoa_farm.py <api_key> <base_url> <form_id> <sheet_name> <creds_path> <spreadsheet_config_path> <spreadsheet_key>
 """
+
 import sys, json, os, tempfile, logging, traceback
 import pandas as pd
 import numpy as np
@@ -17,6 +18,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger("clean_cocoa_farm")
+
 
 def log_step(step: str, status: str, message: str = ""):
     print(json.dumps({"step": step, "status": status, "message": message}), flush=True)
@@ -38,9 +40,7 @@ def main():
     spreadsheet_key = sys.argv[7]
 
     options = (
-        "labels_only=true"
-        "&include_images=false"
-        "&do_not_split_multi_selects=true"
+        "labels_only=true" "&include_images=false" "&do_not_split_multi_selects=true"
     )
     url = f"{base_url}/data/{form_id}.xlsx?{options}"
 
@@ -48,7 +48,9 @@ def main():
     logger.info("Downloading form data…")
     log_step("download", "running", "Downloading form data…")
     try:
-        resp = requests.get(url, headers={"Authorization": f"Token {api_key}"}, timeout=60)
+        resp = requests.get(
+            url, headers={"Authorization": f"Token {api_key}"}, timeout=60
+        )
         resp.raise_for_status()
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
         tmp.write(resp.content)
@@ -64,7 +66,7 @@ def main():
     logger.info("Cleaning data…")
     log_step("clean", "running", "Cleaning data…")
     try:
-        df = pd.read_excel(tmp.name, engine='openpyxl')
+        df = pd.read_excel(tmp.name, engine="openpyxl")
         logger.info(f"Initial rows: {len(df)}")
 
         # 1. Column mapping (full ONA paths)
@@ -94,71 +96,94 @@ def main():
         # 2. Text cleaning helpers
         def clean_title(value):
             if isinstance(value, str):
-                value = value.replace('_', ' ').replace('.', ' ')
-                return ' '.join(value.split()).title()
+                value = value.replace("_", " ").replace(".", " ")
+                return " ".join(value.split()).title()
             return value
 
         def clean_upper(value):
             if isinstance(value, str):
-                return ' '.join(value.split()).upper()
+                return " ".join(value.split()).upper()
             return value
 
         # 3. Clean geographical and enumerator columns
-        for col in ['ZONE', 'STATE', 'LGA', 'CITY', 'ENUMERATOR NAME']:
+        for col in ["ZONE", "STATE", "LGA", "CITY", "ENUMERATOR NAME"]:
             if col in df.columns:
                 df[col] = df[col].apply(clean_title)
 
         # 4. GPS LOCATION
-        if 'GPS' in df.columns:
-            df['GPS LOCATION'] = df['GPS'].apply(
-                lambda x: ', '.join(x.split()[:2]) if isinstance(x, str) else x
+        if "GPS" in df.columns:
+            df["GPS LOCATION"] = df["GPS"].apply(
+                lambda x: ", ".join(x.split()[:2]) if isinstance(x, str) else x
             )
             logger.info("GPS LOCATION created from combined 'GPS' column.")
-        elif 'LATITUDE' in df.columns and 'LONGITUDE' in df.columns:
-            df['GPS LOCATION'] = df['LATITUDE'].astype(str) + ', ' + df['LONGITUDE'].astype(str)
+        elif "LATITUDE" in df.columns and "LONGITUDE" in df.columns:
+            df["GPS LOCATION"] = (
+                df["LATITUDE"].astype(str) + ", " + df["LONGITUDE"].astype(str)
+            )
             logger.info("GPS LOCATION created from LATITUDE and LONGITUDE.")
         else:
             logger.warning("No GPS data available; GPS LOCATION will be empty.")
-            df['GPS LOCATION'] = None
+            df["GPS LOCATION"] = None
 
         # 5. VARIETIES to uppercase
-        if 'VARIETIES' in df.columns:
-            df['VARIETIES'] = df['VARIETIES'].apply(clean_upper)
+        if "VARIETIES" in df.columns:
+            df["VARIETIES"] = df["VARIETIES"].apply(clean_upper)
+
+        # ─── ADD INDEX BEFORE EXPLODING ───
+        df.insert(0, "INDEX", range(1, len(df) + 1))
+        df["INDEX"] = df["INDEX"].astype(str)
 
         # 6. Explode multi-value columns
-        for col in ['PLANTING PURPOSE', 'SEEDLING RECEIVED', 'VARIETIES', 'CROPS']:
+        for col in ["PLANTING PURPOSE", "SEEDLING RECEIVED", "VARIETIES", "CROPS"]:
             if col in df.columns:
-                df[col] = df[col].fillna('').astype(str)
-                df = df.assign(**{col: df[col].str.split(r'\s+')}).explode(col)
-                df = df[df[col].str.strip() != '']
+                df[col] = df[col].fillna("").astype(str)
+                df = df.assign(**{col: df[col].str.split(r"\s+")}).explode(col)
+                df = df[df[col].str.strip() != ""]
                 logger.info(f"Exploded column '{col}'.")
 
         # 7. Map purpose & seedling
-        purpose_map = {'new': 'New Planting', 'rehab': 'Rehabilitation'}
-        seedling_map = {'hybrid': 'Hybrid Seedlings', 'grafted': 'Grafted Seedlings'}
+        purpose_map = {"new": "New Planting", "rehab": "Rehabilitation"}
+        seedling_map = {"hybrid": "Hybrid Seedlings", "grafted": "Grafted Seedlings"}
 
-        if 'PLANTING PURPOSE' in df.columns:
-            df['PLANTING PURPOSE'] = df['PLANTING PURPOSE'].map(purpose_map).fillna(df['PLANTING PURPOSE'])
-        if 'SEEDLING RECEIVED' in df.columns:
-            df['SEEDLING RECEIVED'] = df['SEEDLING RECEIVED'].map(seedling_map).fillna(df['SEEDLING RECEIVED'])
+        if "PLANTING PURPOSE" in df.columns:
+            df["PLANTING PURPOSE"] = (
+                df["PLANTING PURPOSE"].map(purpose_map).fillna(df["PLANTING PURPOSE"])
+            )
+        if "SEEDLING RECEIVED" in df.columns:
+            df["SEEDLING RECEIVED"] = (
+                df["SEEDLING RECEIVED"]
+                .map(seedling_map)
+                .fillna(df["SEEDLING RECEIVED"])
+            )
 
         # 8. Clean CROPS to Title Case
-        if 'CROPS' in df.columns:
-            df['CROPS'] = df['CROPS'].apply(clean_title)
+        if "CROPS" in df.columns:
+            df["CROPS"] = df["CROPS"].apply(clean_title)
 
-        # 9. Final column order
+        # 9. Final column order (INDEX first)
         final_order = [
-            'TODAY', 'FARMER ID', 'FARM AREA', 'PRODUCTION YEAR',
-            'PLANTING PURPOSE', 'SEEDLING RECEIVED', 'VARIETIES', 'CROPS',
-            'ZONE', 'STATE', 'LGA', 'CITY', 'GPS LOCATION',
-            'ENUMERATOR NAME'
+            "INDEX",
+            "TODAY",
+            "FARMER ID",
+            "FARM AREA",
+            "PRODUCTION YEAR",
+            "PLANTING PURPOSE",
+            "SEEDLING RECEIVED",
+            "VARIETIES",
+            "CROPS",
+            "ZONE",
+            "STATE",
+            "LGA",
+            "CITY",
+            "GPS LOCATION",
+            "ENUMERATOR NAME",
         ]
         df = df[[col for col in final_order if col in df.columns]]
 
         logger.info(f"Final rows after cleaning: {len(df)}")
 
         cleaned_path = os.path.join(tempfile.gettempdir(), f"{form_id}_cleaned.xlsx")
-        df.to_excel(cleaned_path, index=False, engine='openpyxl')
+        df.to_excel(cleaned_path, index=False, engine="openpyxl")
 
         log_step("clean", "complete", f"Cleaned {len(df)} rows")
     except Exception as e:
@@ -176,17 +201,26 @@ def main():
             log_step("upload", "failed", "No data to upload")
             sys.exit(1)
 
-        with open(spreadsheet_config_path, 'r') as f:
+        with open(spreadsheet_config_path, "r") as f:
             config = json.load(f)
         spreadsheet_id = config.get(spreadsheet_key)
         if not spreadsheet_id:
             raise ValueError(f"Spreadsheet key '{spreadsheet_key}' not found in config")
 
-        with open(creds_path, 'r') as f:
+        with open(creds_path, "r") as f:
             creds_json = json.load(f)
 
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
+        # Replace inf/-inf/NaN with None so Google Sheets accepts the data
+        df = df.replace([np.inf, -np.inf], np.nan)
+        df = df.where(pd.notnull(df), None)
+
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/drive",
+        ]
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+            creds_json, scope
+        )
         client = gspread.authorize(credentials)
         sheet = client.open_by_key(spreadsheet_id).worksheet(sheet_name)
         sheet.clear()
@@ -200,7 +234,7 @@ def main():
     finally:
         if os.path.exists(tmp.name):
             os.unlink(tmp.name)
-        if 'cleaned_path' in locals() and os.path.exists(cleaned_path):
+        if "cleaned_path" in locals() and os.path.exists(cleaned_path):
             os.unlink(cleaned_path)
 
     logger.info("Cocoa Farm Pipeline completed successfully")
