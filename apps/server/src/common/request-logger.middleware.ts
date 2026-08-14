@@ -13,9 +13,6 @@ export class RequestLoggerMiddleware implements NestMiddleware {
             const { statusCode } = res;
             const duration = Date.now() - start;
             this.logger.log(`${method} ${originalUrl} ${statusCode} (${duration}ms)`);
-            if (method === 'POST' || method === 'PUT') {
-                this.logger.debug(`Body: ${JSON.stringify(req.body)}`);
-            }
         });
 
         next();

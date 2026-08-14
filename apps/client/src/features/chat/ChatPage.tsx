@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Plus, X, ArrowDown, Menu, Search, Download, LogIn } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
+import {
+  Plus,
+  X,
+  ArrowDown,
+  Menu,
+  Search,
+  Download,
+  LogIn,
+  ChevronRight,
+} from "lucide-react";
 import { useChatSession } from "../../common/hooks/useChatSession";
 import { useChatShortcuts } from "../../common/hooks/useChatShortcuts";
 import ChatBubble from "../../common/components/chat/ChatBubble";
@@ -11,9 +20,9 @@ import TypingIndicator from "../../common/components/chat/TypingIndicator";
 import { defaultQuickPrompts } from "../../common/components/chat/quickPrompts";
 import api from "../../lib/api";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
-export default function ChatPage() {
+function ChatPageInner() {
   const session = useChatSession();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,9 +78,16 @@ export default function ChatPage() {
     await downloadPdf(text, "Chat Conversation");
   };
 
+  const toggleSidebar = () => {
+    if (window.innerWidth >= 768) {
+      setSidebarCollapsed((prev) => !prev);
+    } else {
+      session.setSidebarOpen(true);
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-base-200 rounded-2xl overflow-hidden border border-base-300">
-      {/* Sidebar for logged-in users */}
       {session.user && (
         <aside
           className={`hidden md:flex ${
@@ -118,7 +134,6 @@ export default function ChatPage() {
         </aside>
       )}
 
-      {/* Mobile sidebar for logged-in users */}
       {session.user && session.sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
@@ -163,35 +178,40 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Main chat area */}
       <div className="flex-1 flex flex-col relative">
-        {/* Header */}
-        <div className="p-2 bg-base-100 border-b border-base-300 flex items-center gap-2">
+        <div className="p-2 bg-base-100/80 backdrop-blur-md border-b border-base-300 flex items-center gap-2">
           {session.user && (
             <button
-              onClick={() => {
-                if (window.innerWidth >= 768) {
-                  setSidebarCollapsed((prev) => !prev);
-                } else {
-                  session.setSidebarOpen(true);
-                }
-              }}
+              onClick={toggleSidebar}
               className="btn btn-ghost btn-sm btn-circle"
               aria-label="Toggle sidebar"
             >
-              <Menu className="w-5 h-5" />
+              {window.innerWidth >= 768 && sidebarCollapsed ? (
+                <ChevronRight className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
           )}
           <span className="font-semibold font-['Cormorant_Garamond'] text-lg">
             AI Chat
           </span>
-          <button
-            onClick={downloadConversationPdf}
-            className="btn btn-ghost btn-sm btn-circle ml-auto"
-            aria-label="Download conversation as PDF"
-          >
-            <Download className="w-4 h-4" />
-          </button>
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={session.startNewChat}
+              className="btn btn-ghost btn-sm btn-circle"
+              aria-label="New chat"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+            <button
+              onClick={downloadConversationPdf}
+              className="btn btn-ghost btn-sm btn-circle"
+              aria-label="Download conversation as PDF"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div
@@ -241,6 +261,7 @@ export default function ChatPage() {
                 onDownloadPdf={downloadPdf}
               />
             ))}
+
             {showTyping && <TypingIndicator />}
             <div ref={session.chatEndRef} />
           </div>
@@ -255,7 +276,7 @@ export default function ChatPage() {
           </button>
         )}
 
-        <div className="bg-base-100 border-t border-base-300 p-4">
+        <div className="bg-base-100/80 backdrop-blur-md border-t border-base-300 p-4">
           <div className="max-w-3xl mx-auto">
             <ChatComposer
               input={session.input}
@@ -277,4 +298,10 @@ export default function ChatPage() {
       </div>
     </div>
   );
+}
+
+export default function ChatPage() {
+  const { user } = useAuth();
+  const userId = user?.id || "guest";
+  return <ChatPageInner key={userId} />;
 }

@@ -55,6 +55,7 @@ export function useChatSession() {
   const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollPausedRef = useRef(false);
   const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevUserRef = useRef(user);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -73,11 +74,41 @@ export function useChatSession() {
     scrollPausedRef.current = false;
   }, []);
 
+  /* Clean up pause timer on unmount */
   useEffect(() => {
     return () => {
       if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
     };
   }, []);
+
+  /* Reset chat state when user logs out */
+  useEffect(() => {
+    const wasLoggedIn = Boolean(prevUserRef.current);
+    const isLoggedIn = Boolean(user);
+
+    if (wasLoggedIn && !isLoggedIn) {
+      // Clear all chat state
+      setMessages([]);
+      setConversations([]);
+      setActiveConvId(null);
+      setUserHistoryLoaded(false);
+      setGuestHistoryLoaded(false);
+      setInput("");
+      setLoading(false);
+      setSidebarOpen(false);
+      setShowScrollButton(false);
+      setIsAtBottom(true);
+      scrollPausedRef.current = false;
+      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+      clearStreamInterval();
+      abortControllerRef.current?.abort();
+
+      // Clear guest sessions to prevent old user messages from being stored as guest data
+      localStorage.removeItem(GUEST_SESSIONS_KEY);
+    }
+
+    prevUserRef.current = user;
+  }, [user]);
 
   /* ------------------------------ */
   /*  USER: load conversations      */

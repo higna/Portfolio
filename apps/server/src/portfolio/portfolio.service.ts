@@ -96,6 +96,66 @@ export class PortfolioService {
       `export const cvCertifications = ${JSON.stringify(certsArr, null, 2)};`;
   }
 
+  async getCvDataObject(): Promise<any> {
+    const profile = await this.profileRepo.findOne({ where: {} });
+    const experiences = await this.expRepo.find({ order: { order: 'ASC' } });
+    const educations = await this.eduRepo.find({ order: { order: 'ASC' } });
+    const skills = await this.skillRepo.find();
+    const projects = await this.projRepo.find({ order: { order: 'ASC' } });
+    const certifications = await this.certRepo.find({ order: { order: 'ASC' } });
+
+    return {
+      profile: {
+        fullName: profile?.fullName || '',
+        phone: profile?.phone || null,
+        linkedinUrl: profile?.linkedinUrl || null,
+        githubUrl: profile?.githubUrl || null,
+        portfolioUrl: profile?.portfolioUrl || null,
+        professionalSummary: profile?.professionalSummary || '',
+        languages: profile?.languages || [],
+      },
+      experiences: experiences.map((e) => ({
+        jobTitle: e.jobTitle,
+        company: e.company,
+        description: e.description,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        isCurrent: e.isCurrent,
+        order: e.order,
+      })),
+      educations: educations.map((e) => ({
+        degree: e.degree,
+        institution: e.institution,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        grade: e.grade,
+        order: e.order,
+      })),
+      skills: skills.map((s) => ({
+        name: s.name,
+        category: s.category,
+        proficiency: s.proficiency,
+      })),
+      projects: projects.map((p) => ({
+        title: p.title,
+        slug: p.slug,
+        description: p.description,
+        techStack: p.techStack,
+        liveUrl: p.liveUrl,
+        githubUrl: p.githubUrl,
+        imageUrl: p.imageUrl,
+        isFeatured: p.isFeatured,
+        order: p.order,
+      })),
+      certifications: certifications.map((c) => ({
+        name: c.name,
+        issuer: c.issuer,
+        date: c.date,
+        order: c.order,
+      })),
+    };
+  }
+
   async getProfile() {
     return this.profileRepo.findOne({ where: {} });
   }

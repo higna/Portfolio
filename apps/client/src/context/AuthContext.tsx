@@ -92,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     logger.log('Logout');
+    localStorage.removeItem('guest-chat-sessions');
     localStorage.removeItem('token');
     setUser(null);
     toast('You have been logged out.', { icon: '👋' });
