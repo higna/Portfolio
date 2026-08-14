@@ -1,181 +1,182 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { createLogger } from "../../lib/logger";
-import api from "../../lib/api";
-import { Send, User, Bot, MessageCircle } from "lucide-react";
-
-const logger = createLogger("ChatPage");
-
-const quickPrompts = [
-  "I need his CV",
-  "Tell me about his projects",
-  "I need a service",
-  "What technologies does he use?",
-];
-
-interface Message {
-  role: "user" | "ai";
-  content: string;
-}
+import { Plus, X, ArrowDown, Menu, Search } from "lucide-react";
+import { useChatSession } from "../../common/hooks/useChatSession";
+import { useChatShortcuts } from "../../common/hooks/useChatShortcuts";
+import ChatBubble from "../../common/components/chat/ChatBubble";
+import ChatComposer from "../../common/components/chat/ChatComposer";
+import ChatEmptyState from "../../common/components/chat/ChatEmptyState";
+import ConversationList from "../../common/components/chat/ConversationList";
+import TypingIndicator from "../../common/components/chat/TypingIndicator";
+import { defaultQuickPrompts } from "../../common/components/chat/quickPrompts";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [historyLoaded, setHistoryLoaded] = useState(false);
-
-  const { user } = useAuth();
+  const session = useChatSession();
   const [searchParams] = useSearchParams();
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Load history if logged in
-  useEffect(() => {
-    if (user && !historyLoaded) {
-      api
-        .get("/chat/history")
-        .then((res) => {
-          logger.log("Chat history loaded");
-          // Just take the latest conversation if exists, or start fresh
-          const conversations = res.data;
-          if (conversations.length > 0) {
-            const lastConv = conversations[conversations.length - 1];
-            setConversationId(lastConv.conversationId);
-            setMessages(lastConv.messages);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setHistoryLoaded(true));
-    }
-  }, [user, historyLoaded]);
+  useChatShortcuts({
+    onNewChat: session.startNewChat,
+    onStop: session.stopStreaming,
+    isGenerating: session.loading,
+  });
 
-  // Pre-fill input from URL param
+  // Handle pre‑filled message from ?message=
   useEffect(() => {
     const msg = searchParams.get("message");
-    if (msg && !loading && messages.length === 0) {
-      handleSend(msg);
+    if (msg && !session.loading && session.messages.length === 0) {
+      session.handleSend(msg);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const filteredConversations = session.conversations.filter((conv) =>
+    conv.preview.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-  const handleSend = async (text?: string) => {
-    const message = text || input.trim();
-    if (!message) return;
-    setInput("");
-
-    const userMsg: Message = { role: "user", content: message };
-    setMessages((prev) => [...prev, userMsg]);
-    setLoading(true);
-
-    try {
-      const res = await api.post("/chat/message", {
-        message,
-        conversationId,
-      });
-      const aiMsg: Message = { role: "ai", content: res.data.response };
-      setMessages((prev) => [...prev, aiMsg]);
-      setConversationId(res.data.conversationId);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", content: "Something went wrong." },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const showTyping =
+    session.loading && session.messages[session.messages.length - 1]?.role !== "ai";
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-base-200">
-      <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-8 overflow-y-auto">
-        {messages.length === 0 && (
-          <div className="text-center pt-20">
-            <MessageCircle className="w-16 h-16 mx-auto text-base-content/30 mb-4" />
-            <h2 className="text-2xl font-bold font-['Cormorant_Garamond'] text-base-content/70">
-              Ask me anything
-            </h2>
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
-              {quickPrompts.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => handleSend(p)}
-                  className="btn btn-sm btn-outline"
-                >
-                  {p}
-                </button>
-              ))}
+    <div className="flex h-[calc(100vh-4rem)] bg-base-200">
+      {/* Sidebar (desktop) – only if logged in */}
+      {session.user && (
+        <aside className="hidden md:flex md:w-72 bg-base-100 border-r border-base-300 flex-col shrink-0">
+          <div className="p-3 border-b border-base-300 space-y-2">
+            <button onClick={session.startNewChat} className="btn btn-primary w-full gap-2">
+              <Plus className="w-4 h-4" /> New chat
+              <kbd className="kbd kbd-xs ml-auto opacity-70">⌘K</kbd>
+            </button>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input input-bordered w-full pl-9"
+              />
             </div>
           </div>
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            <ConversationList
+              conversations={filteredConversations}
+              activeConvId={session.activeConvId}
+              onSelect={session.selectConversation}
+              onDelete={session.deleteConversation}
+              onRename={session.renameConversation}
+              emptyLabel="No conversations found"
+            />
+          </div>
+          <div className="p-3 border-t border-base-300">
+            <button onClick={session.clearConversation} className="btn btn-ghost btn-sm w-full gap-2">
+              <X className="w-4 h-4" /> Clear current chat
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* Mobile sidebar drawer – only if logged in */}
+      {session.user && session.sidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => session.setSidebarOpen(false)} />
+          <aside className="absolute left-0 top-0 h-full w-64 bg-base-100 shadow-xl flex flex-col">
+            <div className="p-3 border-b border-base-300 flex items-center justify-between">
+              <span className="font-bold font-['Cormorant_Garamond'] text-lg">Conversations</span>
+              <button
+                onClick={() => session.setSidebarOpen(false)}
+                className="btn btn-ghost btn-xs btn-circle"
+                aria-label="Close conversations"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-2 border-b border-base-300">
+              <button onClick={session.startNewChat} className="btn btn-primary w-full gap-2">
+                <Plus className="w-4 h-4" /> New chat
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+              <ConversationList
+                conversations={session.conversations}
+                activeConvId={session.activeConvId}
+                onSelect={session.selectConversation}
+                onDelete={session.deleteConversation}
+                onRename={session.renameConversation}
+              />
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col relative">
+        <div className="md:hidden p-2 bg-base-100 border-b border-base-300 flex items-center gap-2">
+          {session.user && (
+            <button
+              onClick={() => session.setSidebarOpen(true)}
+              className="btn btn-ghost btn-sm btn-circle"
+              aria-label="Open conversations"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+          <span className="font-semibold font-['Cormorant_Garamond'] text-lg">AI Chat</span>
+        </div>
+
+        <div ref={session.chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+          {session.messages.length === 0 && !session.loading && (
+            <ChatEmptyState prompts={defaultQuickPrompts} onSelect={session.handleSend} />
+          )}
+
+          <div className="space-y-6 max-w-3xl mx-auto">
+            {session.messages.map((msg, idx) => (
+              <ChatBubble
+                key={msg.id}
+                message={msg}
+                isLast={idx === session.messages.length - 1}
+                copied={session.copiedMessageId === msg.id}
+                editing={session.editingId === msg.id}
+                loading={session.loading}
+                user={session.user}
+                onCopy={session.copyMessage}
+                onRegenerate={session.regenerateLast}
+                onStartEdit={session.setEditingId}
+                onCancelEdit={() => session.setEditingId(null)}
+                onSubmitEdit={session.editAndResend}
+                onDeleteMessage={session.deleteMessage}
+              />
+            ))}
+
+            {showTyping && <TypingIndicator />}
+            <div ref={session.chatEndRef} />
+          </div>
+        </div>
+
+        {session.showScrollButton && (
+          <button
+            onClick={() => session.scrollToBottom()}
+            className="absolute bottom-28 right-6 btn btn-primary btn-sm gap-2 shadow-lg"
+          >
+            <ArrowDown className="w-4 h-4" /> New messages
+          </button>
         )}
 
-        <div className="space-y-4">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`flex gap-2 max-w-[80%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}
-              >
-                <div className="avatar placeholder shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-neutral text-neutral-content">
-                    {msg.role === "user" ? (
-                      <User className="w-4 h-4" />
-                    ) : (
-                      <Bot className="w-4 h-4" />
-                    )}
-                  </div>
-                </div>
-                <div
-                  className={`px-4 py-2 rounded-xl text-sm ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-content"
-                      : "bg-base-100 shadow-sm"
-                  }`}
-                >
-                  {msg.content}
-                </div>
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="flex gap-2">
-                <div className="w-8 h-8 rounded-full bg-neutral flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-neutral-content" />
-                </div>
-                <div className="px-4 py-2 rounded-xl bg-base-100 shadow-sm">
-                  <span className="loading loading-dots loading-sm"></span>
-                </div>
-              </div>
-            </div>
+        <div className="bg-base-100 border-t border-base-300 p-4">
+          {!session.user && (
+            <p className="text-center text-xs text-base-content/40 mb-2">
+              Log in to save your conversation history.
+            </p>
           )}
-          <div ref={chatEndRef} />
-        </div>
-      </div>
-
-      {/* Input area */}
-      <div className="bg-base-100 border-t border-base-300 p-4">
-        <div className="max-w-3xl mx-auto flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type a message..."
-            className="input input-bordered flex-1"
-          />
-          <button
-            onClick={() => handleSend()}
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            <Send className="w-5 h-5" />
-          </button>
+          <div className="max-w-3xl mx-auto">
+            <ChatComposer
+              input={session.input}
+              setInput={session.setInput}
+              loading={session.loading}
+              onSend={() => session.handleSend()}
+              onStop={session.stopStreaming}
+            />
+          </div>
         </div>
       </div>
     </div>
