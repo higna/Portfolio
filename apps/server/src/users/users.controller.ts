@@ -1,6 +1,14 @@
 import {
-  Controller, Get, Put, Delete, Body, Param, UseGuards,
-  UseInterceptors, ClassSerializerInterceptor, BadRequestException,
+  Controller,
+  Get,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -11,9 +19,26 @@ import { UsersService } from './users.service';
 import { UserRole } from './entities/user.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
+/*
+ * Extracts Cloudinary public_id from a secure URL robustly.
+ */
 function extractCloudinaryPublicId(url: string): string | null {
-  const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)\.\w+$/);
-  return match ? match[1] : null;
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.split('/');
+    const uploadIndex = parts.indexOf('upload');
+    if (uploadIndex === -1) return null;
+    const afterUpload = parts.slice(uploadIndex + 1);
+    if (afterUpload.length > 0 && /^v\d+$/.test(afterUpload[0])) {
+      afterUpload.shift();
+    }
+    if (afterUpload.length === 0) return null;
+    const last = afterUpload[afterUpload.length - 1];
+    afterUpload[afterUpload.length - 1] = last.replace(/\.[^/.]+$/, '');
+    return afterUpload.join('/');
+  } catch {
+    return null;
+  }
 }
 
 @Controller('users')
@@ -46,7 +71,12 @@ export class UsersController {
       if (attrs[key] !== undefined) filtered[key] = attrs[key];
     }
 
-    if (filtered.picture && currentUser.picture && filtered.picture !== currentUser.picture) {
+    // Delete old avatar from Cloudinary if a new picture is provided
+    if (
+      filtered.picture &&
+      currentUser.picture &&
+      filtered.picture !== currentUser.picture
+    ) {
       const oldPublicId = extractCloudinaryPublicId(currentUser.picture);
       if (oldPublicId) {
         await this.cloudinaryService.deleteImage(oldPublicId).catch(() => {});

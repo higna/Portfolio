@@ -4,7 +4,6 @@ import {
   Sun,
   Moon,
   User,
-  Menu,
   X,
   LogOut,
   LayoutDashboard,
@@ -205,7 +204,7 @@ export default function Navbar() {
               className="text-xl font-bold text-primary tracking-tight rounded"
               aria-label="Home"
             >
-              <img src="/higna.png" alt="HECTOR" className="h-16 w-auto" />
+              <img src="/higna.png" alt="HECTOR" className="h-8 w-auto" />
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
@@ -238,52 +237,37 @@ export default function Navbar() {
             </div>
 
             <div className="md:hidden flex items-center gap-2">
-              {user ? (
-                <Link
-                  to="/dashboard/profile"
-                  className={`btn btn-ghost btn-circle ${
-                    isHomeTransparent
-                      ? "text-white hover:text-[#D4AF37]"
-                      : "text-base-content"
-                  }`}
-                  aria-label="Profile"
-                >
-                  <User className="w-5 h-5" />
-                </Link>
-              ) : (
-                <Link
-                  to="/login"
-                  className={`btn btn-ghost btn-circle ${
-                    isHomeTransparent
-                      ? "text-white hover:text-[#D4AF37]"
-                      : "text-base-content"
-                  }`}
-                  aria-label="Login"
-                >
-                  <User className="w-5 h-5" />
-                </Link>
-              )}
               {user && <NotificationBell transparent={isHomeTransparent} />}
               <button
                 ref={menuButtonRef}
                 onClick={() => setSidebarOpen(true)}
                 className={`btn btn-ghost btn-circle ${
-                  isHomeTransparent
-                    ? "text-white hover:text-[#D4AF37]"
-                    : "text-base-content"
+                  isHomeTransparent ? "text-white" : "text-base-content"
                 }`}
                 aria-label="Open menu"
                 aria-expanded={sidebarOpen}
                 aria-controls="mobile-sidebar"
               >
-                <Menu className="w-5 h-5" />
+                {user?.picture ? (
+                  <img
+                    src={user.picture}
+                    alt={user.fullName || "User"}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : user?.fullName ? (
+                  <span className="text-sm font-bold">
+                    {user.fullName.charAt(0).toUpperCase()}
+                  </span>
+                ) : (
+                  <User className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar (unchanged except scroll fix) */}
       <div
         id="mobile-sidebar"
         className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 motion-reduce:transition-none ${
@@ -347,9 +331,7 @@ export default function Navbar() {
                 <div className="bg-neutral/20 rounded-full w-10 h-10 flex items-center justify-center">
                   <User className="w-5 h-5 text-base-content/70" />
                 </div>
-                <span className="text-sm font-medium text-base-content/70">
-                  Guest
-                </span>
+                <span className="text-sm font-medium text-base-content/70">Guest</span>
               </div>
             )}
           </div>

@@ -89,8 +89,6 @@ export class AuthService {
     }
   }
 
-  // ... rest methods unchanged (verifyEmail, resendVerification, login, etc.)
-  // For brevity I will include a stubs where necessary.
   async verifyEmail(token: string) {
     const user = await this.usersService.findByVerificationToken(token);
     if (!user) throw new BadRequestException('Invalid or expired verification token');
@@ -140,40 +138,45 @@ export class AuthService {
     return { message: 'Password reset successful. You can now log in.' };
   }
 
-  async googleLogin(profile: { googleId: string; email: string; fullName: string; picture?: string }) {
+  /*
+   * Google login/signup:
+   * - For new Google users, store the Google picture URL directly (no Cloudinary upload).
+   * - For existing Google users, do not change or re-upload the picture.
+   * - For existing local users linking Google, do not change picture unless missing.
+   */
+  async googleLogin(profile: {
+    googleId: string;
+    email: string;
+    fullName: string;
+    picture?: string;
+  }) {
     let user = await this.usersService.findByGoogleId(profile.googleId);
     if (!user) {
       user = await this.usersService.findByEmail(profile.email);
       if (user) {
+        // Existing local user – link Google account, keep existing picture
         user.googleId = profile.googleId;
-        if (!user.picture && profile.picture) {
-          const uploaded = await this.cloudinaryService.uploadAvatarFromUrl(profile.picture);
-          if (uploaded) user.picture = uploaded;
-        }
         if (!user.fullName) user.fullName = profile.fullName;
         await this.usersService.update(user.id, user);
       } else {
-        let pictureUrl: string | null = null;
-        if (profile.picture) {
-          const uploaded = await this.cloudinaryService.uploadAvatarFromUrl(profile.picture);
-          if (uploaded) pictureUrl = uploaded;
-        }
+        // New Google user – store Google picture URL directly
         user = await this.usersService.create({
           email: profile.email,
           fullName: profile.fullName,
           googleId: profile.googleId,
-          picture: pictureUrl,
+          picture: profile.picture || null,
           authProvider: AuthProvider.GOOGLE,
           isVerified: true,
         });
       }
     } else {
-      if (profile.picture) {
-        const uploaded = await this.cloudinaryService.uploadAvatarFromUrl(profile.picture);
-        if (uploaded) user.picture = uploaded;
-        await this.usersService.update(user.id, { picture: user.picture });
+      // Existing Google user – optionally update name only
+      if (!user.fullName) {
+        user.fullName = profile.fullName;
+        await this.usersService.update(user.id, { fullName: profile.fullName });
       }
     }
+
     const payload = { sub: user.id, email: user.email, role: user.role };
     const access_token = this.jwtService.sign(payload);
     return { access_token };
