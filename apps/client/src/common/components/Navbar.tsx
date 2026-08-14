@@ -237,12 +237,16 @@ export default function Navbar() {
             </div>
 
             <div className="md:hidden flex items-center gap-2">
+              <ThemeToggle
+                theme={theme}
+                onToggle={toggleTheme}
+                transparent={isHomeTransparent}
+              />
               {user && <NotificationBell transparent={isHomeTransparent} />}
               <button
-                ref={menuButtonRef}
                 onClick={() => setSidebarOpen(true)}
                 className={`btn btn-ghost btn-circle ${
-                  isHomeTransparent ? "text-white" : "text-base-content"
+                  isHomeTransparent ? "text-white hover:text-[#D4AF37]" : "text-base-content"
                 }`}
                 aria-label="Open menu"
                 aria-expanded={sidebarOpen}
@@ -251,12 +255,12 @@ export default function Navbar() {
                 {user?.picture ? (
                   <img
                     src={user.picture}
-                    alt={user.fullName || "User"}
+                    alt="Profile"
                     className="w-8 h-8 rounded-full object-cover"
                   />
-                ) : user?.fullName ? (
+                ) : user ? (
                   <span className="text-sm font-bold">
-                    {user.fullName.charAt(0).toUpperCase()}
+                    {user.fullName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                   </span>
                 ) : (
                   <User className="w-5 h-5" />
@@ -267,7 +271,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Sidebar (unchanged except scroll fix) */}
+      {/* Mobile Sidebar */}
       <div
         id="mobile-sidebar"
         className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 motion-reduce:transition-none ${
