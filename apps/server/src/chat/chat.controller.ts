@@ -1,13 +1,24 @@
-import { Controller, Post, Body, Req, Get, Delete, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  Get,
+  Delete,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post('message')
+  @UseGuards(OptionalJwtAuthGuard)
   async sendMessage(
     @Body() body: { message: string; conversationId?: string },
     @Req() req: Request,

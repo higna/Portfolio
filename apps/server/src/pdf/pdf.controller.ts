@@ -4,17 +4,18 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFiles,
-  Res,
+  Res, Body
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { PdfService } from './pdf.service';
 import type { Response } from 'express';
 import { createReadStream, unlinkSync, rmdirSync } from 'fs';
 import { dirname } from 'path';
+import PDFDocument from "pdfkit";
 
 @Controller('pdf')
 export class PdfController {
-  constructor(private readonly pdfService: PdfService) {}
+  constructor(private readonly pdfService: PdfService) { }
 
   @Post('merge')
   @UseInterceptors(FilesInterceptor('files', 20, { limits: { fileSize: 50 * 1024 * 1024 } }))
@@ -38,7 +39,7 @@ export class PdfController {
         const dir = dirname(mergedPath);
         unlinkSync(mergedPath);
         rmdirSync(dir, { recursive: true });
-      } catch {}
+      } catch { }
     });
   }
 
@@ -64,7 +65,21 @@ export class PdfController {
         const dir = dirname(convertedPath);
         unlinkSync(convertedPath);
         rmdirSync(dir, { recursive: true });
-      } catch {}
+      } catch { }
     });
+  }
+
+  @Post('generate')
+  async generateTextPdf(@Body() body: { text: string; title?: string; fileName?: string }, @Res() res: Response) {
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${body.fileName || 'document.pdf'}"`);
+    doc.pipe(res);
+    if (body.title) {
+      doc.fontSize(20).text(body.title, { align: 'center' });
+      doc.moveDown();
+    }
+    doc.fontSize(12).text(body.text);
+    doc.end();
   }
 }

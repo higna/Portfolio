@@ -109,7 +109,7 @@ export default function NotificationBell({ transparent = false }: NotificationBe
     const message = notif.message.toLowerCase();
 
     if (title.includes('pipeline') || message.includes('pipeline')) {
-      return '/dashboard/data/extraction';
+      return '/dashboard/data/pipeline';
     }
     if (title.includes('pdf') || message.includes('pdf')) {
       return '/dashboard/pdf/merge';

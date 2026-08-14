@@ -55,7 +55,12 @@ const getNavConfig = (role: string): NavItem[] => {
       subItems: [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/dashboard/users', label: 'Users', icon: Users },
-        { path: `${import.meta.env.VITE_API_URL || 'http://localhost:2500'}`, label: 'API Docs', icon: FileText, external: true },
+        {
+          path: `${import.meta.env.VITE_API_URL || 'http://localhost:2500'}`,
+          label: 'API Docs',
+          icon: FileText,
+          external: true,
+        },
       ],
     });
     config.push({
@@ -78,18 +83,12 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/data/pipeline', label: 'Pipeline', icon: Cog },
       ],
     });
-
-    // ---- Standalone Projects (clickable) ----
     config.push({
       label: 'Projects',
       icon: BriefcaseConveyorBelt,
       path: '/projects',
-      subItems: [
-        { path: '/dashboard/campaign', label: 'Campaign DP', icon: Image },
-      ],
+      subItems: [{ path: '/dashboard/campaign', label: 'Campaign DP', icon: Image }],
     });
-
-    // ---- Standalone PDF Tools ----
     config.push({
       label: 'PDF Tools',
       icon: FileText,
@@ -98,8 +97,6 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/pdf/images-to-pdf', label: 'Images to PDF', icon: FileText },
       ],
     });
-
-    // ---- Standalone Barcode Tools ----
     config.push({
       label: 'Barcode Tools',
       icon: QrCode,
@@ -108,22 +105,16 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
-
     config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
   } else {
-    // User dashboard
     config.push({ path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard });
     config.push({ path: '/dashboard/profile', label: 'Profile', icon: User });
-
     config.push({
       label: 'Projects',
       icon: BriefcaseConveyorBelt,
       path: '/projects',
-      subItems: [
-        { path: '/dashboard/campaign', label: 'Campaign DP', icon: Image },
-      ],
+      subItems: [{ path: '/dashboard/campaign', label: 'Campaign DP', icon: Image }],
     });
-
     config.push({
       label: 'PDF Tools',
       icon: FileText,
@@ -132,7 +123,6 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/pdf/images-to-pdf', label: 'Images to PDF', icon: FileText },
       ],
     });
-
     config.push({
       label: 'Barcode Tools',
       icon: QrCode,
@@ -141,7 +131,6 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
-
     config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
   }
 
@@ -172,9 +161,7 @@ const NavItem = ({
   }, [isChildActive, hasSubItems]);
 
   const handleToggleSub = () => {
-    if (hasSubItems) {
-      setIsOpen(!isOpen);
-    }
+    if (hasSubItems) setIsOpen(!isOpen);
   };
 
   const linkClasses = `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -185,7 +172,7 @@ const NavItem = ({
 
   const Icon = item.icon;
 
-  // Top‑level item with both path and sub‑items
+  // Top-level item with both path and sub-items
   if (item.path && hasSubItems) {
     return (
       <div>
@@ -211,7 +198,7 @@ const NavItem = ({
                 handleToggleSub();
               }}
               className="btn btn-ghost btn-xs btn-circle ml-auto"
-              aria-label="Toggle sub‑menu"
+              aria-label="Toggle sub-menu"
             >
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-300 ${
@@ -225,9 +212,7 @@ const NavItem = ({
         {!collapsed && hasSubItems && (
           <div
             className={`grid transition-all duration-300 ease-in-out ${
-              isOpen
-                ? 'grid-rows-[1fr] opacity-100 mt-1'
-                : 'grid-rows-[0fr] opacity-0'
+              isOpen ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'
             }`}
           >
             <div className="overflow-hidden flex flex-col gap-1 pl-9 pr-2">
@@ -270,7 +255,7 @@ const NavItem = ({
     );
   }
 
-  // Top‑level item that is a direct link (no sub‑items)
+  // Top-level item that is a direct link (no sub-items)
   if (item.path && !hasSubItems) {
     if (item.external) {
       return (
@@ -308,7 +293,7 @@ const NavItem = ({
     );
   }
 
-  // Top‑level item with only sub‑items (no path)
+  // Top-level item with only sub-items (no path)
   return (
     <div>
       <div onClick={handleToggleSub} className={`${linkClasses} cursor-pointer`}>
@@ -328,9 +313,7 @@ const NavItem = ({
       {!collapsed && hasSubItems && (
         <div
           className={`grid transition-all duration-300 ease-in-out ${
-            isOpen
-              ? 'grid-rows-[1fr] opacity-100 mt-1'
-              : 'grid-rows-[0fr] opacity-0'
+            isOpen ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'
           }`}
         >
           <div className="overflow-hidden flex flex-col gap-1 pl-9 pr-2">
@@ -380,7 +363,11 @@ export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation(); // Fixed: now inside component
   const role = user?.role || 'USER';
+
+  // Hide footer on the dashboard chat route
+  const isChatRoute = location.pathname === '/dashboard/chat';
 
   const navItems = useMemo(() => getNavConfig(role), [role]);
 
@@ -428,7 +415,7 @@ export default function DashboardLayout() {
         {/* Desktop sidebar */}
         <aside
           className={`hidden md:flex flex-col bg-base-100/90 backdrop-blur-lg border-r border-base-content/10 transition-all duration-300 z-20 sticky top-16 h-[calc(100vh-4rem)] ${
-            collapsed ? 'w-20' : 'w-70'
+            collapsed ? 'w-20' : 'w-72'
           }`}
         >
           <button
@@ -555,7 +542,8 @@ export default function DashboardLayout() {
         </main>
       </div>
 
-      <Footer />
+      {/* Conditionally render footer – hidden on dashboard chat route */}
+      {!isChatRoute && <Footer />}
 
       {/* Command Palette */}
       <CommandPalette

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, X, ArrowDown, Menu, Search } from "lucide-react";
+import { Plus, X, ArrowDown, Menu, Search, Download, LogIn } from "lucide-react";
 import { useChatSession } from "../../common/hooks/useChatSession";
 import { useChatShortcuts } from "../../common/hooks/useChatShortcuts";
 import ChatBubble from "../../common/components/chat/ChatBubble";
@@ -9,11 +9,15 @@ import ChatEmptyState from "../../common/components/chat/ChatEmptyState";
 import ConversationList from "../../common/components/chat/ConversationList";
 import TypingIndicator from "../../common/components/chat/TypingIndicator";
 import { defaultQuickPrompts } from "../../common/components/chat/quickPrompts";
+import api from "../../lib/api";
+import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 export default function ChatPage() {
   const session = useChatSession();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useChatShortcuts({
     onNewChat: session.startNewChat,
@@ -21,32 +25,60 @@ export default function ChatPage() {
     isGenerating: session.loading,
   });
 
-  // Handle pre‑filled message from ?message=
   useEffect(() => {
     const msg = searchParams.get("message");
     if (msg && !session.loading && session.messages.length === 0) {
       session.handleSend(msg);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  const filteredConversations = session.conversations.filter((conv) =>
-    conv.preview.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredConversations = session.conversations.filter((c) =>
+    c.preview.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const showTyping =
-    session.loading && session.messages[session.messages.length - 1]?.role !== "ai";
+    session.loading &&
+    session.messages[session.messages.length - 1]?.role !== "ai";
+
+  const downloadPdf = async (text: string, title = "Generated Document") => {
+    try {
+      const res = await api.post(
+        "/pdf/generate",
+        { text, title, fileName: "document.pdf" },
+        { responseType: "blob" },
+      );
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "document.pdf";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
+  const downloadConversationPdf = async () => {
+    if (session.messages.length === 0) {
+      toast.error("No messages to export");
+      return;
+    }
+    const text = session.messages
+      .map((m) => `${m.role === "user" ? "You" : "AI"}: ${m.content}`)
+      .join("\n\n");
+    await downloadPdf(text, "Chat Conversation");
+  };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-base-200">
-      {/* Sidebar (desktop) – only if logged in */}
+    <div className="flex h-[calc(100vh-4rem)] bg-base-200 rounded-2xl overflow-hidden border border-base-300">
+      {/* Sidebar for logged-in users */}
       {session.user && (
-        <aside className="hidden md:flex md:w-72 bg-base-100 border-r border-base-300 flex-col shrink-0">
-          <div className="p-3 border-b border-base-300 space-y-2">
-            <button onClick={session.startNewChat} className="btn btn-primary w-full gap-2">
-              <Plus className="w-4 h-4" /> New chat
-              <kbd className="kbd kbd-xs ml-auto opacity-70">⌘K</kbd>
-            </button>
+        <aside
+          className={`hidden md:flex ${
+            sidebarCollapsed ? "md:w-0" : "md:w-72"
+          } bg-base-100 border-r border-base-300 flex-col shrink-0 overflow-hidden transition-all duration-300`}
+        >
+          <div className="p-3 border-b border-base-300">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />
               <input
@@ -58,31 +90,44 @@ export default function ChatPage() {
               />
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+
+          <div className="flex-1 overflow-y-auto p-2">
             <ConversationList
               conversations={filteredConversations}
               activeConvId={session.activeConvId}
               onSelect={session.selectConversation}
               onDelete={session.deleteConversation}
               onRename={session.renameConversation}
-              emptyLabel="No conversations found"
             />
           </div>
-          <div className="p-3 border-t border-base-300">
-            <button onClick={session.clearConversation} className="btn btn-ghost btn-sm w-full gap-2">
-              <X className="w-4 h-4" /> Clear current chat
+
+          <div className="p-3 border-t border-base-300 space-y-2">
+            <button
+              onClick={session.startNewChat}
+              className="btn btn-primary w-full gap-2"
+            >
+              <Plus className="w-4 h-4" /> New chat
+            </button>
+            <button
+              onClick={downloadConversationPdf}
+              className="btn btn-ghost btn-sm w-full gap-2"
+            >
+              <Download className="w-4 h-4" /> Export as PDF
             </button>
           </div>
         </aside>
       )}
 
-      {/* Mobile sidebar drawer – only if logged in */}
+      {/* Mobile sidebar for logged-in users */}
       {session.user && session.sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => session.setSidebarOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-64 bg-base-100 shadow-xl flex flex-col">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => session.setSidebarOpen(false)}
+          />
+          <aside className="absolute left-0 top-0 h-full w-72 bg-base-100 shadow-xl flex flex-col">
             <div className="p-3 border-b border-base-300 flex items-center justify-between">
-              <span className="font-bold font-['Cormorant_Garamond'] text-lg">Conversations</span>
+              <span className="font-bold">Conversations</span>
               <button
                 onClick={() => session.setSidebarOpen(false)}
                 className="btn btn-ghost btn-xs btn-circle"
@@ -91,19 +136,28 @@ export default function ChatPage() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-2 border-b border-base-300">
-              <button onClick={session.startNewChat} className="btn btn-primary w-full gap-2">
-                <Plus className="w-4 h-4" /> New chat
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            <div className="flex-1 overflow-y-auto p-2">
               <ConversationList
-                conversations={session.conversations}
+                conversations={filteredConversations}
                 activeConvId={session.activeConvId}
                 onSelect={session.selectConversation}
                 onDelete={session.deleteConversation}
                 onRename={session.renameConversation}
               />
+            </div>
+            <div className="p-3 border-t border-base-300 space-y-2">
+              <button
+                onClick={session.startNewChat}
+                className="btn btn-primary w-full gap-2"
+              >
+                <Plus className="w-4 h-4" /> New chat
+              </button>
+              <button
+                onClick={downloadConversationPdf}
+                className="btn btn-ghost btn-sm w-full gap-2"
+              >
+                <Download className="w-4 h-4" /> Export as PDF
+              </button>
             </div>
           </aside>
         </div>
@@ -111,22 +165,61 @@ export default function ChatPage() {
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col relative">
-        <div className="md:hidden p-2 bg-base-100 border-b border-base-300 flex items-center gap-2">
+        {/* Header */}
+        <div className="p-2 bg-base-100 border-b border-base-300 flex items-center gap-2">
           {session.user && (
             <button
-              onClick={() => session.setSidebarOpen(true)}
+              onClick={() => {
+                if (window.innerWidth >= 768) {
+                  setSidebarCollapsed((prev) => !prev);
+                } else {
+                  session.setSidebarOpen(true);
+                }
+              }}
               className="btn btn-ghost btn-sm btn-circle"
-              aria-label="Open conversations"
+              aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5" />
             </button>
           )}
-          <span className="font-semibold font-['Cormorant_Garamond'] text-lg">AI Chat</span>
+          <span className="font-semibold font-['Cormorant_Garamond'] text-lg">
+            AI Chat
+          </span>
+          <button
+            onClick={downloadConversationPdf}
+            className="btn btn-ghost btn-sm btn-circle ml-auto"
+            aria-label="Download conversation as PDF"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
 
-        <div ref={session.chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
+        <div
+          ref={session.chatContainerRef}
+          className="flex-1 min-h-0 overflow-y-auto px-4 py-6"
+        >
           {session.messages.length === 0 && !session.loading && (
-            <ChatEmptyState prompts={defaultQuickPrompts} onSelect={session.handleSend} />
+            <>
+              <ChatEmptyState
+                prompts={defaultQuickPrompts}
+                onSelect={session.handleSend}
+              />
+              {!session.user && (
+                <div className="mt-8 text-center">
+                  <p className="text-sm text-base-content/60">
+                    Sign in to save your chat history and access it from any device.
+                  </p>
+                  <div className="flex justify-center gap-2 mt-3">
+                    <Link to="/login" className="btn btn-sm btn-primary gap-2">
+                      <LogIn className="w-4 h-4" /> Login
+                    </Link>
+                    <Link to="/signup" className="btn btn-sm btn-outline">
+                      Create Account
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           <div className="space-y-6 max-w-3xl mx-auto">
@@ -145,9 +238,9 @@ export default function ChatPage() {
                 onCancelEdit={() => session.setEditingId(null)}
                 onSubmitEdit={session.editAndResend}
                 onDeleteMessage={session.deleteMessage}
+                onDownloadPdf={downloadPdf}
               />
             ))}
-
             {showTyping && <TypingIndicator />}
             <div ref={session.chatEndRef} />
           </div>
@@ -163,11 +256,6 @@ export default function ChatPage() {
         )}
 
         <div className="bg-base-100 border-t border-base-300 p-4">
-          {!session.user && (
-            <p className="text-center text-xs text-base-content/40 mb-2">
-              Log in to save your conversation history.
-            </p>
-          )}
           <div className="max-w-3xl mx-auto">
             <ChatComposer
               input={session.input}
@@ -177,6 +265,14 @@ export default function ChatPage() {
               onStop={session.stopStreaming}
             />
           </div>
+          {!session.user && session.messages.length > 0 && (
+            <p className="text-center text-xs text-base-content/50 mt-2">
+              <Link to="/login" className="text-primary hover:underline">
+                Sign in
+              </Link>{" "}
+              to save this conversation
+            </p>
+          )}
         </div>
       </div>
     </div>

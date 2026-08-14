@@ -9,6 +9,7 @@ import {
 import Navbar from "./common/components/Navbar";
 import AuthLayout from "./common/components/AuthLayout";
 import DashboardLayout from "./common/components/DashboardLayout";
+import ChatLayout from "./common/components/ChatLayout";
 import ProtectedRoute from "./common/components/ProtectedRoute";
 import GuestRoute from "./common/components/GuestRoute";
 import { createLogger } from "./lib/logger";
@@ -143,7 +144,6 @@ export default function AppRouter() {
         {/* Public pages with main Navbar + Footer */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/chat" element={<ChatPage />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/sandbox" element={<Sandbox />} />
           <Route path="/projects" element={<ProjectsPage />} />
@@ -153,6 +153,9 @@ export default function AppRouter() {
           <Route path="/campaign/:id" element={<CampaignFill />} />
           <Route path="/barcode-generator" element={<BarcodeGenerator />} />
           <Route path="/barcode-interpreter" element={<BarcodeInterpreter />} />
+        </Route>
+        <Route element={<ChatLayout />}>
+          <Route path="/chat" element={<ChatPage />} />
         </Route>
 
         {/* 404 catch-all */}

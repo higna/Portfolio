@@ -29,7 +29,7 @@ export default function ChatComposer({
   }, [input]);
 
   return (
-    <div className="flex gap-2 items-end bg-base-100/60 backdrop-blur-xl rounded-2xl border border-base-300/40 p-2">
+    <div className="relative flex items-end gap-2 bg-base-100/80 backdrop-blur-xl rounded-2xl border border-base-300/50 p-2 pl-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] focus-within:border-primary/70 focus-within:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -46,13 +46,17 @@ export default function ChatComposer({
         disabled={loading}
       />
       {loading ? (
-        <button onClick={onStop} className="btn btn-error btn-circle" aria-label="Stop generation">
+        <button
+          onClick={onStop}
+          className="btn btn-error btn-circle shadow-[0_0_12px_rgba(239,68,68,0.3)] transition-transform hover:scale-105"
+          aria-label="Stop generation"
+        >
           <StopCircle className="w-5 h-5" />
         </button>
       ) : (
         <button
           onClick={onSend}
-          className="btn btn-primary btn-circle disabled:opacity-40"
+          className="btn btn-primary btn-circle disabled:opacity-40 shadow-[0_0_12px_rgba(212,175,55,0.25)] transition-transform hover:scale-105"
           disabled={!input.trim()}
           aria-label="Send message"
         >

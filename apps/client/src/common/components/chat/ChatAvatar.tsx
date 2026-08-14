@@ -28,7 +28,7 @@ export default function ChatAvatar({ role, user }: ChatAvatarProps) {
   if (role === "ai") {
     return (
       <div className="avatar placeholder shrink-0">
-        <div className="w-8 h-8 rounded-full bg-base-300/60 text-base-content/70 ring-1 ring-primary/30 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary/20 to-secondary/20 text-base-content ring-1 ring-primary/30 shadow-[0_0_12px_rgba(212,175,55,0.25)] flex items-center justify-center">
           <Bot className="w-4 h-4" />
         </div>
       </div>
@@ -40,7 +40,7 @@ export default function ChatAvatar({ role, user }: ChatAvatarProps) {
   if (imageUrl) {
     return (
       <div className="avatar shrink-0">
-        <div className="w-8 h-8 rounded-full ring-1 ring-primary/60 ring-offset-1 ring-offset-base-100 overflow-hidden">
+        <div className="w-8 h-8 rounded-full ring-1 ring-primary/60 ring-offset-1 ring-offset-base-100 shadow-[0_0_12px_rgba(212,175,55,0.2)] overflow-hidden">
           <img src={imageUrl} alt={user?.fullName || user?.name || "You"} referrerPolicy="no-referrer" />
         </div>
       </div>
@@ -52,7 +52,7 @@ export default function ChatAvatar({ role, user }: ChatAvatarProps) {
   if (initials) {
     return (
       <div className="avatar placeholder shrink-0">
-        <div className="w-8 h-8 rounded-full bg-primary text-primary-content ring-1 ring-primary/40 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-secondary text-primary-content ring-1 ring-primary/40 shadow-[0_0_10px_rgba(212,175,55,0.3)] flex items-center justify-center">
           <span className="text-xs font-semibold">{initials}</span>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function ChatAvatar({ role, user }: ChatAvatarProps) {
   // Guest fallback
   return (
     <div className="avatar placeholder shrink-0">
-      <div className="w-8 h-8 rounded-full bg-base-300/60 text-base-content/70 ring-1 ring-primary/30 flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full bg-base-300/60 text-base-content/70 ring-1 ring-primary/30 shadow-[0_0_8px_rgba(212,175,55,0.15)] flex items-center justify-center">
         <User className="w-4 h-4" />
       </div>
     </div>

@@ -11,12 +11,8 @@ import axios from 'axios';
 @Injectable()
 export class ChatService {
   private readonly logger = new Logger(ChatService.name);
-
-  // OpenAI
   private readonly openaiKeys: string[] = [];
   private openaiIndex = 0;
-
-  // Groq
   private readonly groqKeys: string[] = [];
   private groqIndex = 0;
 
@@ -30,25 +26,28 @@ export class ChatService {
     @InjectRepository(ChatHistory)
     private readonly chatHistoryRepo: Repository<ChatHistory>,
   ) {
-    // Load OpenAI keys (supports comma‑separated multiple)
     const openaiString = this.configService.get<string>('OPENAI_API_KEYS', '');
     const openaiSingle = this.configService.get<string>('OPENAI_API_KEY', '');
-    const openaiList = openaiString.split(',').map(k => k.trim()).filter(k => k.length > 0);
+    const openaiList = openaiString
+      .split(',')
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0);
     if (openaiSingle && !openaiList.includes(openaiSingle)) {
       openaiList.push(openaiSingle);
     }
     this.openaiKeys.push(...openaiList);
     this.logger.log(`Loaded ${this.openaiKeys.length} OpenAI key(s)`);
 
-    // Load Groq keys
     const groqString = this.configService.get<string>('GROQ_API_KEYS', '');
-    this.groqKeys.push(...groqString.split(',').map(k => k.trim()).filter(k => k.length > 0));
+    this.groqKeys.push(
+      ...groqString
+        .split(',')
+        .map((k) => k.trim())
+        .filter((k) => k.length > 0),
+    );
     this.logger.log(`Loaded ${this.groqKeys.length} Groq key(s)`);
   }
 
-  /*
-   * Build a system prompt from the live portfolio data (cached 5 min).
-   */
   private async buildSystemPrompt(): Promise<string> {
     const now = Date.now();
     if (this.systemPromptCache && now - this.systemPromptCacheTime < 5 * 60 * 1000) {
@@ -72,12 +71,12 @@ Here is his live CV data:
 - GitHub: ${profile?.githubUrl || ''}
 - Skills: ${skillList}
 
-If a user asks for a CV, generate a tailored version based on the job description they provide, using only the real information above.`;
+If a user asks for a CV, cover letter, or any document, generate the text content for it. Also mention that they can click the "Download PDF" button below your response to save it as a PDF. Do not say you cannot generate PDFs — the platform provides the PDF conversion automatically.`;
 
       this.systemPromptCacheTime = now;
       return this.systemPromptCache;
     } catch {
-      this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website. Answer questions about his work and skills accurately.`;
+      this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website. Answer questions about his work and skills accurately. If asked for a PDF, provide the text content and mention the download button.`;
       this.systemPromptCacheTime = now;
       return this.systemPromptCache;
     }
@@ -87,7 +86,6 @@ If a user asks for a CV, generate a tailored version based on the job descriptio
     return uuidv4();
   }
 
-  /* ─── Try OpenAI with key rotation ─── */
   private async tryOpenAI(userMessage: string): Promise<string | null> {
     if (this.openaiKeys.length === 0) return null;
     const systemPrompt = await this.buildSystemPrompt();
@@ -106,7 +104,10 @@ If a user asks for a CV, generate a tailored version based on the job descriptio
             temperature: 0.7,
           },
           {
-            headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+            headers: {
+              Authorization: `Bearer ${key}`,
+              'Content-Type': 'application/json',
+            },
             timeout: 30000,
           },
         );
@@ -114,14 +115,14 @@ If a user asks for a CV, generate a tailored version based on the job descriptio
         return response.data.choices[0].message.content;
       } catch (error: any) {
         attempts++;
-        this.logger.warn(`OpenAI key ${(this.openaiIndex + attempts - 1) % this.openaiKeys.length} failed: ${error.message}`);
-        // Continue to next key on any error, including 429
+        this.logger.warn(
+          `OpenAI key ${(this.openaiIndex + attempts - 1) % this.openaiKeys.length} failed: ${error.message}`,
+        );
       }
     }
     return null;
   }
 
-  /* ─── Try Groq with key rotation ─── */
   private async tryGroq(userMessage: string): Promise<string | null> {
     if (this.groqKeys.length === 0) return null;
     const systemPrompt = await this.buildSystemPrompt();
@@ -132,7 +133,7 @@ If a user asks for a CV, generate a tailored version based on the job descriptio
         const response = await axios.post(
           'https://api.groq.com/openai/v1/chat/completions',
           {
-            model: 'llama-3.3-70b-versatile', // or 'mixtral-8x7b-32768'
+            model: 'llama-3.3-70b-versatile',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userMessage },
@@ -140,7 +141,10 @@ If a user asks for a CV, generate a tailored version based on the job descriptio
             temperature: 0.7,
           },
           {
-            headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+            headers: {
+              Authorization: `Bearer ${key}`,
+              'Content-Type': 'application/json',
+            },
             timeout: 30000,
           },
         );
@@ -148,15 +152,14 @@ If a user asks for a CV, generate a tailored version based on the job descriptio
         return response.data.choices[0].message.content;
       } catch (error: any) {
         attempts++;
-        this.logger.warn(`Groq key ${(this.groqIndex + attempts - 1) % this.groqKeys.length} failed: ${error.message}`);
+        this.logger.warn(
+          `Groq key ${(this.groqIndex + attempts - 1) % this.groqKeys.length} failed: ${error.message}`,
+        );
       }
     }
     return null;
   }
 
-  /*
-   * Send message, enforce daily limit, and persist history.
-   */
   async sendMessage(
     userMessage: string,
     conversationId: string,
@@ -188,25 +191,35 @@ If a user asks for a CV, generate a tailored version based on the job descriptio
     return { response: aiResponse, conversationId, limitReached: false };
   }
 
-  /* Conversation methods unchanged */
   async getConversations(userId: string): Promise<any[]> {
     const messages = await this.chatHistoryRepo.find({
       where: { userId },
       order: { createdAt: 'ASC' },
     });
+
     const convoMap = new Map<string, any>();
     for (const msg of messages) {
       if (!convoMap.has(msg.conversationId)) {
         convoMap.set(msg.conversationId, {
           conversationId: msg.conversationId,
-          preview: msg.userMessage.substring(0, 50) + (msg.userMessage.length > 50 ? '…' : ''),
+          preview:
+            msg.userMessage.substring(0, 50) +
+            (msg.userMessage.length > 50 ? '…' : ''),
           createdAt: msg.createdAt,
+          updatedAt: msg.createdAt,
         });
+      } else {
+        const conv = convoMap.get(msg.conversationId);
+        conv.updatedAt = msg.createdAt;
       }
     }
-    return Array.from(convoMap.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+
+    return Array.from(convoMap.values())
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      )
+      .map(({ updatedAt, ...rest }) => rest);
   }
 
   async getHistory(userId: string, conversationId: string): Promise<any[]> {
