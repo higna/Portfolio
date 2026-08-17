@@ -33,7 +33,7 @@ function loadGuestSessions(): GuestSession[] {
 function saveGuestSessions(sessions: GuestSession[]) {
   try {
     localStorage.setItem(GUEST_SESSIONS_KEY, JSON.stringify(sessions));
-  } catch {}
+  } catch { }
 }
 
 export function useChatSession() {
@@ -52,7 +52,6 @@ export function useChatSession() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollPausedRef = useRef(false);
   const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevUserRef = useRef(user);
@@ -69,8 +68,13 @@ export function useChatSession() {
   }, []);
 
   const scrollToBottom = useCallback((smooth = true) => {
-    chatEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
-    setIsAtBottom(true);
+    const el = chatContainerRef.current;
+    if (!el) return;
+    if (smooth) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
     scrollPausedRef.current = false;
   }, []);
 
@@ -97,7 +101,6 @@ export function useChatSession() {
       setLoading(false);
       setSidebarOpen(false);
       setShowScrollButton(false);
-      setIsAtBottom(true);
       scrollPausedRef.current = false;
       if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
       clearStreamInterval();
@@ -125,7 +128,7 @@ export function useChatSession() {
           setActiveConvId(latest.conversationId);
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setUserHistoryLoaded(true));
   }, [user, userHistoryLoaded, hasToken]);
 
@@ -171,7 +174,7 @@ export function useChatSession() {
           setMessages(loaded);
           scrollToBottom(false);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [activeConvId, user, userHistoryLoaded, messages.length, scrollToBottom]);
 
@@ -186,8 +189,8 @@ export function useChatSession() {
     const preview = firstUserMsg
       ? firstUserMsg.content.slice(0, 50) + (firstUserMsg.content.length > 50 ? "…" : "")
       : messages.length > 0
-      ? "New chat"
-      : "";
+        ? "New chat"
+        : "";
 
     const updated = sessions.map((s) => {
       if (s.id === activeConvId) {
@@ -207,17 +210,17 @@ export function useChatSession() {
   /*  Scroll handling (fixed)       */
   /* ------------------------------ */
   useEffect(() => {
-    if (isAtBottom && !scrollPausedRef.current && isNearBottom()) {
-      scrollToBottom();
+    if (!scrollPausedRef.current && isNearBottom()) {
+      const el = chatContainerRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
     }
-  }, [messages, isAtBottom, isNearBottom, scrollToBottom]);
+  }, [messages, isNearBottom]);
 
   useEffect(() => {
     const el = chatContainerRef.current;
     if (!el) return;
     const handleScroll = () => {
       const near = isNearBottom();
-      setIsAtBottom(near);
       setShowScrollButton(!near);
 
       if (!near) {
@@ -225,7 +228,7 @@ export function useChatSession() {
         if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
         pauseTimerRef.current = setTimeout(() => {
           scrollPausedRef.current = false;
-        }, 1500);
+        }, 2000);
       }
     };
     el.addEventListener("scroll", handleScroll);
@@ -422,7 +425,7 @@ export function useChatSession() {
         }));
         setMessages(loaded);
         scrollToBottom(false);
-      } catch {}
+      } catch { }
     } else {
       const sessions = loadGuestSessions();
       const session = sessions.find((s) => s.id === convId);
@@ -452,7 +455,7 @@ export function useChatSession() {
           setMessages([]);
         }
       }
-    } catch {}
+    } catch { }
   };
 
   const renameConversation = async (convId: string, newTitle: string, e?: React.MouseEvent) => {

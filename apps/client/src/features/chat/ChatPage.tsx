@@ -227,7 +227,8 @@ function ChatPageInner() {
               {!session.user && (
                 <div className="mt-8 text-center">
                   <p className="text-sm text-base-content/60">
-                    Sign in to save your chat history and access it from any device.
+                    Sign in to save your chat history and access it from any
+                    device.
                   </p>
                   <div className="flex justify-center gap-2 mt-3">
                     <Link to="/login" className="btn btn-sm btn-primary gap-2">
@@ -268,12 +269,14 @@ function ChatPageInner() {
         </div>
 
         {session.showScrollButton && (
-          <button
-            onClick={() => session.scrollToBottom()}
-            className="absolute bottom-28 right-6 btn btn-primary btn-sm gap-2 shadow-lg"
-          >
-            <ArrowDown className="w-4 h-4" /> New messages
-          </button>
+          <div className="px-4 py-2 flex justify-end">
+            <button
+              onClick={() => session.scrollToBottom()}
+              className="btn btn-primary btn-sm gap-2 shadow-lg"
+            >
+              <ArrowDown className="w-4 h-4" /> New messages
+            </button>
+          </div>
         )}
 
         <div className="bg-base-100/80 backdrop-blur-md border-t border-base-300 p-4">
