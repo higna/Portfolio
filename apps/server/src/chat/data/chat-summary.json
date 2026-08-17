@@ -1,0 +1,86 @@
+{
+  "profile": {
+    "fullName": "IGNA-IGBOKO HECTOR",
+    "title": "Full‑Stack Developer & Data Engineer",
+    "phone": "+234-916-040-9456",
+    "linkedinUrl": "linkedin.com/in/hector-ignatius",
+    "githubUrl": "github.com/higna",
+    "portfolioUrl": "higna.vercel.app",
+    "professionalSummary": "Full‑Stack Developer & Data Engineer with a passion for automation, AI integration, and clean architecture. Builds production-ready web apps, data pipelines, and interactive tools."
+  },
+  "skills": [
+    "Python", "JavaScript", "TypeScript", "React", "Next.js", "NestJS", "Node.js",
+    "TypeORM", "Tailwind CSS", "DaisyUI", "Framer Motion", "Pandas",
+    "Data Analysis", "Data Visualization", "Machine Learning", "Gemini API",
+    "Supabase", "PostgreSQL", "Cloudinary", "Brevo", "Git & GitHub",
+    "Playwright", "Selenium", "BeautifulSoup", "ODK", "Power BI", "Looker Studio",
+    "WordPress", "Canva", "Figma", "Java", "Docker"
+  ],
+  "experiences": [
+    {
+      "jobTitle": "Application Developer",
+      "company": "Virology & Molecular Diagnostics Unit, IITA",
+      "period": "Nov 2022 - Present",
+      "highlights": "Build data collection tools (ODK), ETL pipelines, dashboards, platform admin, training workshops."
+    },
+    {
+      "jobTitle": "Public and Press Relations (NYSC)",
+      "company": "Freedom of Information Acts, (OBS)",
+      "period": "Jan 2023 - Nov 2023",
+      "highlights": "Captured images, assisted with public relations campaigns."
+    },
+    {
+      "jobTitle": "Photographer & Graphics Designer",
+      "company": "Stoney Photography",
+      "period": "Jul 2021 - Jul 2022",
+      "highlights": "Photography and visual content for social media."
+    },
+    {
+      "jobTitle": "IT Professional & Data Analyst",
+      "company": "Angelic Unique Waters",
+      "period": "Nov 2019 - Jun 2021",
+      "highlights": "Data analysis, website maintenance, customer support."
+    },
+    {
+      "jobTitle": "Intern",
+      "company": "YIIFSWA (IITA)",
+      "period": "Jul 2019 - Oct 2019",
+      "highlights": "Managed data using SQL, developed web apps."
+    }
+  ],
+  "educations": [
+    {
+      "degree": "M.Sc. Artificial Intelligence (In‑progress)",
+      "institution": "University of Ibadan, Nigeria",
+      "period": "2023 - Present"
+    },
+    {
+      "degree": "B.Sc. Computer Science",
+      "institution": "Dominican University, Ibadan, Nigeria",
+      "period": "2017 - 2021",
+      "note": "Best Programmer of the 2020/2021 session"
+    },
+    {
+      "degree": "National Diploma in Computer Science",
+      "institution": "Federal School of Statistics, Ibadan, Nigeria",
+      "period": "2016 - 2017"
+    }
+  ],
+  "certifications": [
+    "Python for Data Science, AI & Development – IBM",
+    "Statistical Analysis & Machine Learning with R – IITA",
+    "Data Visualization with MS Excel – Acacia University",
+    "Technical Support Fundamentals – Google",
+    "IT Security: Defense Against Digital Threats – Google",
+    "Basics of Digital Marketing – UniAthena",
+    "Use of Seed Tracker – CGIAR"
+  ],
+  "projects": [
+    "Portfolio Command Center – Full‑stack dynamic portfolio with AI chatbot, dashboards, and data pipelines.",
+    "Cocoa Seed Tracker – Platform for cocoa seed data collection and visualization.",
+    "Data Pipeline – Python ETL pipeline using ONA API and Google Sheets.",
+    "OGFIMS Dashboard – Data analysis and visualization tool for farmer information.",
+    "Lab Network – Collaborative platform for plant scientists and diagnostic labs.",
+    "BBTV Alliance – Project website for the BBTV alliance."
+  ]
+}

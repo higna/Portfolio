@@ -7,7 +7,12 @@ export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
+
+  @Get('health')
+  getHealth() {
+    return { status: 'ok', timestamp: new Date().toISOString() };
+  }
 
   @Get()
   @Header('Content-Type', 'text/html')

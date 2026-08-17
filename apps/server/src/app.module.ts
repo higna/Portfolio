@@ -19,10 +19,12 @@ import { CampaignModule } from './campaign/campaign.module';
 import { GeneratorSettingsModule } from './generator-settings/generator-settings.module';
 import { EventsModule } from './common/events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

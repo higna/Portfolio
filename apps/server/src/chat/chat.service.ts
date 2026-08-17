@@ -14,13 +14,19 @@ import { join } from 'path';
 export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
-  // OpenAI
+  // OpenAI keys and index
   private readonly openaiKeys: string[] = [];
   private openaiIndex = 0;
 
-  // Groq
+  // Groq keys and models
   private readonly groqKeys: string[] = [];
   private groqIndex = 0;
+  private readonly groqModels = [
+    'llama3-8b-8192',
+    'llama3-70b-8192',
+    'mixtral-8x7b-32768',
+    'gemma2-9b-it',
+  ];
 
   private systemPromptCache: string | null = null;
   private systemPromptCacheTime = 0;
@@ -33,7 +39,7 @@ export class ChatService {
     @InjectRepository(ChatHistory)
     private readonly chatHistoryRepo: Repository<ChatHistory>,
   ) {
-    // Load OpenAI keys
+    // Load OpenAI keys (supports comma-separated multiple)
     const openaiString = this.configService.get<string>('OPENAI_API_KEYS', '');
     const openaiSingle = this.configService.get<string>('OPENAI_API_KEY', '');
     const openaiList = openaiString
@@ -57,7 +63,7 @@ export class ChatService {
     this.logger.log(`Loaded ${this.groqKeys.length} Groq key(s)`);
 
     // Set CV data file path and generate if missing
-    this.cvDataFilePath = join(process.cwd(), 'src', 'chat', 'data', 'cv-data.json');
+    this.cvDataFilePath = join(process.cwd(), 'src', 'chat', 'data', 'chat-summary.json');
     this.ensureCvDataFile();
   }
 
@@ -101,60 +107,44 @@ export class ChatService {
     const data = this.readCvDataFromFile();
     if (data) {
       const profile = data.profile || {};
+      const skills = data.skills || [];
       const experiences = data.experiences || [];
       const educations = data.educations || [];
       const certifications = data.certifications || [];
       const projects = data.projects || [];
-      const skills = data.skills || [];
 
-      const skillList = skills.map((s: any) => s.name).join(', ');
+      const skillList = skills.join(', ');
 
       const expList = experiences.map((e: any) => {
-        const start = e.startDate
-          ? new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          : 'Unknown';
-        const end = e.endDate
-          ? new Date(e.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          : 'Present';
-        return `${e.jobTitle} at ${e.company} (${start} - ${end})\n   ${
-          e.description ? e.description.join(' | ') : ''
-        }`;
+        return `${e.jobTitle} at ${e.company} (${e.period || 'Unknown'})\n   ${e.highlights || ''}`;
       }).join('\n\n');
 
       const eduList = educations.map((e: any) => {
-        const start = e.startDate ? new Date(e.startDate).getFullYear() : '?';
-        const end = e.endDate ? new Date(e.endDate).getFullYear() : 'Present';
-        return `${e.degree}, ${e.institution} (${start} - ${end})${
-          e.grade ? ` - ${e.grade}` : ''
-        }`;
+        return `${e.degree}, ${e.institution} (${e.period || '?'})${e.note ? ` - ${e.note}` : ''}`;
       }).join('\n');
 
-      const certList = certifications.map((c: any) => {
-        const date = c.date
-          ? new Date(c.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          : '';
-        return `${c.name} - ${c.issuer} (${date})`;
-      }).join('\n');
+      const certList = certifications.join('\n');
 
-      const projList = projects.map((p: any) => `${p.title}: ${p.description}`).join('\n');
+      const projList = projects.map((p: any) => p).join('\n');
 
       this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website.
-Your goal is to answer questions about Hector, his skills, his projects, and his professional experience.
-Always be polite, concise, and truthful. Never invent roles or skills.
+Answer questions about his skills, projects, experience, education, certifications, and contact information.
+Be concise and truthful. Never invent information.
 
-Here is his complete CV data:
+Here is a summary of Hector's CV:
 
 ## Profile
-- Full Name: ${profile?.fullName || 'Hector Igna‑Igboko'}
-- Summary: ${profile?.professionalSummary || 'Full‑Stack Developer & Data Engineer'}
-- Phone: ${profile?.phone || ''}
-- LinkedIn: ${profile?.linkedinUrl || ''}
-- GitHub: ${profile?.githubUrl || ''}
+Name: ${profile.fullName}
+Title: ${profile.title}
+Summary: ${profile.professionalSummary}
+Phone: ${profile.phone}
+LinkedIn: ${profile.linkedinUrl}
+GitHub: ${profile.githubUrl}
 
 ## Skills
 ${skillList}
 
-## Professional Experience
+## Experience
 ${expList}
 
 ## Education
@@ -166,13 +156,13 @@ ${certList}
 ## Projects
 ${projList}
 
-If a user asks for a CV, cover letter, or any document, generate the complete text content based on the above data. Include all relevant sections (Contact, Summary, Skills, Experience, Education, Certifications, Projects). Mention that they can click the "Download PDF" button below your response to save it as a PDF.`;
+If a user asks for a CV, cover letter, or document, generate the text content based on this data. Mention that they can click the "Download PDF" button below the response.`;
+
       this.systemPromptCacheTime = now;
       return this.systemPromptCache;
     }
 
-    // Fallback if file missing or corrupt
-    this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website. Answer questions about his work and skills accurately. If asked for a PDF, provide the text content and mention the download button.`;
+    this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website. Answer questions about his work and skills accurately.`;
     this.systemPromptCacheTime = now;
     return this.systemPromptCache;
   }
@@ -221,14 +211,21 @@ If a user asks for a CV, cover letter, or any document, generate the complete te
   private async tryGroq(userMessage: string): Promise<string | null> {
     if (this.groqKeys.length === 0) return null;
     const systemPrompt = await this.buildSystemPrompt();
+
     let attempts = 0;
-    while (attempts < this.groqKeys.length) {
-      const key = this.groqKeys[(this.groqIndex + attempts) % this.groqKeys.length];
+    const totalAttempts = this.groqKeys.length * this.groqModels.length;
+    while (attempts < totalAttempts) {
+      const keyIndex = this.groqIndex % this.groqKeys.length;
+      const modelIndex = Math.floor(attempts / this.groqKeys.length) % this.groqModels.length;
+
+      const key = this.groqKeys[keyIndex];
+      const model = this.groqModels[modelIndex];
+
       try {
         const response = await axios.post(
           'https://api.groq.com/openai/v1/chat/completions',
           {
-            model: 'llama-3.3-70b-versatile',
+            model,
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userMessage },
@@ -248,10 +245,11 @@ If a user asks for a CV, cover letter, or any document, generate the complete te
       } catch (error: any) {
         attempts++;
         this.logger.warn(
-          `Groq key ${(this.groqIndex + attempts - 1) % this.groqKeys.length} failed: ${error.message}`,
+          `Groq key ${keyIndex} model ${model} failed: ${error.message}`,
         );
       }
     }
+
     return null;
   }
 
@@ -268,9 +266,10 @@ If a user asks for a CV, cover letter, or any document, generate the complete te
       };
     }
 
+    // Try Groq first (free), then OpenAI as fallback
     let aiResponse =
-      (await this.tryOpenAI(userMessage)) ||
       (await this.tryGroq(userMessage)) ||
+      (await this.tryOpenAI(userMessage)) ||
       'All AI services are currently unavailable. Please try again later.';
 
     if (userId) {
