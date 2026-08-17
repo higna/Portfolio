@@ -21,12 +21,7 @@ export class ChatService {
   // Groq keys and models
   private readonly groqKeys: string[] = [];
   private groqIndex = 0;
-  private readonly groqModels = [
-    'llama3-8b-8192',
-    'llama3-70b-8192',
-    'mixtral-8x7b-32768',
-    'gemma2-9b-it',
-  ];
+  private readonly groqModels: string[];
 
   private systemPromptCache: string | null = null;
   private systemPromptCacheTime = 0;
@@ -39,7 +34,7 @@ export class ChatService {
     @InjectRepository(ChatHistory)
     private readonly chatHistoryRepo: Repository<ChatHistory>,
   ) {
-    // Load OpenAI keys (supports comma-separated multiple)
+    // Load OpenAI keys
     const openaiString = this.configService.get<string>('OPENAI_API_KEYS', '');
     const openaiSingle = this.configService.get<string>('OPENAI_API_KEY', '');
     const openaiList = openaiString
@@ -62,14 +57,35 @@ export class ChatService {
     );
     this.logger.log(`Loaded ${this.groqKeys.length} Groq key(s)`);
 
+    // Load Groq models from env or use a default list with current models
+    const groqModelsString = this.configService.get<string>('GROQ_MODELS', '');
+    if (groqModelsString.trim()) {
+      this.groqModels = groqModelsString
+        .split(',')
+        .map((m) => m.trim())
+        .filter((m) => m.length > 0);
+    } else {
+      this.groqModels = [
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'llama-3.2-1b-preview',
+        'llama-3.2-3b-preview',
+        'llama-3.2-11b-text-preview',
+        'llama-3.2-90b-text-preview',
+        'llama-3.3-70b-specdec',
+        'llama-3.2-90b-vision-instruct',
+        'llama-3.2-11b-vision-instruct',
+      ];
+    }
+    this.logger.log(`Groq models: ${this.groqModels.join(', ')}`);
+
     // Set CV data file path and generate if missing
-    this.cvDataFilePath = join(process.cwd(), 'src', 'chat', 'data', 'chat-summary.json');
+    this.cvDataFilePath = join(process.cwd(), 'src', 'chat', 'data', 'cv-data.json');
     this.ensureCvDataFile();
   }
 
   /*
    * Creates the local cv-data.json file if it doesn't already exist.
-   * This gives the AI a static snapshot of the CV data without hitting the DB on every request.
    */
   private async ensureCvDataFile(): Promise<void> {
     if (existsSync(this.cvDataFilePath)) return;
@@ -84,7 +100,7 @@ export class ChatService {
   }
 
   /*
-   * Reads the local cv-data.json file, avoiding DB queries for each prompt.
+   * Reads the local cv-data.json file.
    */
   private readCvDataFromFile(): any | null {
     try {
@@ -107,44 +123,60 @@ export class ChatService {
     const data = this.readCvDataFromFile();
     if (data) {
       const profile = data.profile || {};
-      const skills = data.skills || [];
       const experiences = data.experiences || [];
       const educations = data.educations || [];
       const certifications = data.certifications || [];
       const projects = data.projects || [];
+      const skills = data.skills || [];
 
-      const skillList = skills.join(', ');
+      const skillList = skills.map((s: any) => s.name).join(', ');
 
       const expList = experiences.map((e: any) => {
-        return `${e.jobTitle} at ${e.company} (${e.period || 'Unknown'})\n   ${e.highlights || ''}`;
+        const start = e.startDate
+          ? new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          : 'Unknown';
+        const end = e.endDate
+          ? new Date(e.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          : 'Present';
+        return `${e.jobTitle} at ${e.company} (${start} - ${end})\n   ${
+          e.description ? e.description.join(' | ') : ''
+        }`;
       }).join('\n\n');
 
       const eduList = educations.map((e: any) => {
-        return `${e.degree}, ${e.institution} (${e.period || '?'})${e.note ? ` - ${e.note}` : ''}`;
+        const start = e.startDate ? new Date(e.startDate).getFullYear() : '?';
+        const end = e.endDate ? new Date(e.endDate).getFullYear() : 'Present';
+        return `${e.degree}, ${e.institution} (${start} - ${end})${
+          e.grade ? ` - ${e.grade}` : ''
+        }`;
       }).join('\n');
 
-      const certList = certifications.join('\n');
+      const certList = certifications.map((c: any) => {
+        const date = c.date
+          ? new Date(c.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          : '';
+        return `${c.name} - ${c.issuer} (${date})`;
+      }).join('\n');
 
-      const projList = projects.map((p: any) => p).join('\n');
+      const projList = projects.map((p: any) => `${p.title}: ${p.description}`).join('\n');
 
       this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website.
-Answer questions about his skills, projects, experience, education, certifications, and contact information.
-Be concise and truthful. Never invent information.
+Your goal is to answer questions about Hector, his skills, his projects, and his professional experience.
+Always be polite, concise, and truthful. Never invent roles or skills.
 
-Here is a summary of Hector's CV:
+Here is his complete CV data:
 
 ## Profile
-Name: ${profile.fullName}
-Title: ${profile.title}
-Summary: ${profile.professionalSummary}
-Phone: ${profile.phone}
-LinkedIn: ${profile.linkedinUrl}
-GitHub: ${profile.githubUrl}
+- Full Name: ${profile?.fullName || 'Hector Igna‑Igboko'}
+- Summary: ${profile?.professionalSummary || 'Full‑Stack Developer & Data Engineer'}
+- Phone: ${profile?.phone || ''}
+- LinkedIn: ${profile?.linkedinUrl || ''}
+- GitHub: ${profile?.githubUrl || ''}
 
 ## Skills
 ${skillList}
 
-## Experience
+## Professional Experience
 ${expList}
 
 ## Education
@@ -156,13 +188,12 @@ ${certList}
 ## Projects
 ${projList}
 
-If a user asks for a CV, cover letter, or document, generate the text content based on this data. Mention that they can click the "Download PDF" button below the response.`;
-
+If a user asks for a CV, cover letter, or any document, generate the complete text content based on the above data. Include all relevant sections (Contact, Summary, Skills, Experience, Education, Certifications, Projects). Mention that they can click the "Download PDF" button below your response to save it as a PDF.`;
       this.systemPromptCacheTime = now;
       return this.systemPromptCache;
     }
 
-    this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website. Answer questions about his work and skills accurately.`;
+    this.systemPromptCache = `You are a helpful AI assistant on Hector Igna‑Igboko's portfolio website. Answer questions about his work and skills accurately. If asked for a PDF, provide the text content and mention the download button.`;
     this.systemPromptCacheTime = now;
     return this.systemPromptCache;
   }
@@ -266,7 +297,7 @@ If a user asks for a CV, cover letter, or document, generate the text content ba
       };
     }
 
-    // Try Groq first (free), then OpenAI as fallback
+    // Try Groq first (free), then OpenAI
     let aiResponse =
       (await this.tryGroq(userMessage)) ||
       (await this.tryOpenAI(userMessage)) ||
