@@ -9,8 +9,17 @@ export class HealthPingService {
     private readonly backendUrl: string;
 
     constructor(private readonly configService: ConfigService) {
-        this.backendUrl = this.configService.get<string>('BACKEND_URL', 'http://localhost:2500');
+        const port =
+            process.env.PORT ||
+            this.configService.get<number>('BACKEND_PORT') ||
+            2500;
+
+        this.backendUrl = this.configService.get<string>(
+            'BACKEND_URL',
+            `http://localhost:${port}`,
+        );
     }
+
     @Cron(CronExpression.EVERY_10_MINUTES)
     async pingSelf() {
         try {
