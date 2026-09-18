@@ -17,14 +17,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger("clean_cocoa_seed_garden")
 
+
 def log_step(step: str, status: str, message: str = ""):
     print(json.dumps({"step": step, "status": status, "message": message}), flush=True)
+
 
 def clean_text(val):
     if isinstance(val, str):
         val = val.replace('_', ' ').replace('.', ' ')
         return ' '.join(val.split()).title()
     return val
+
+
+def coalesce(df, *cols):
+    """Return the first non-null value across the given columns (skipping missing ones)."""
+    cols = [c for c in cols if c in df.columns]
+    if not cols:
+        return pd.Series([None] * len(df), index=df.index)
+    out = df[cols[0]]
+    for c in cols[1:]:
+        out = out.combine_first(df[c])
+    return out
+
 
 def main():
     logger.info("Starting Cocoa Seed Garden Pipeline")
@@ -194,18 +208,23 @@ def main():
         date_cols = ['FRIN_SURVEY_DATE', 'CRIN_SURVEY_DATE', 'SURVEY DATE']
         for col in date_cols:
             if col in df_clean.columns:
-                df_clean[col] = pd.to_numeric(df_clean[col], errors='coerce')
-                df_clean[col] = pd.to_datetime(df_clean[col], unit='D', origin='1899-12-30', errors='coerce')
+                if not pd.api.types.is_datetime64_any_dtype(df_clean[col]):
+                    df_clean[col] = pd.to_numeric(df_clean[col], errors='coerce')
+                    df_clean[col] = pd.to_datetime(
+                        df_clean[col], unit='D', origin='1899-12-30', errors='coerce'
+                    )
                 df_clean[col] = df_clean[col].dt.strftime('%Y-%m-%d')
 
         # 2. Text cleaning (Title Case for most)
+        # NOTE: variety columns are intentionally NOT cleaned here –
+        #       they must keep their original "_" separators until split.
         text_cols = [
             'GARDEN TYPE', 'NAME', 'BUSINESS NAME',
             'GENDER', 'COUNTRY', 'ZONE', 'STATE', 'CITY', 'LGA',
             'LOCATION DESCRIPTION', 'FRIN_PURPOSE', 'FRIN_SHADE', 'FRIN_TIMBER',
-            'FRIN_FRUIT', 'FRIN_OTHER_CROPS', 'FRIN_VARIETIES',
-            'CRIN_PURPOSE', 'CROP_TYPE', 'POLYCLONAL', 'CRIN_CLONES',
-            'CRIN_OTHER_VARIETIES', 'CROPS', 'CROPS_SHADE', 'CROPS_TIMBER',
+            'FRIN_FRUIT', 'FRIN_OTHER_CROPS',
+            'CRIN_PURPOSE', 'CROP_TYPE', 'POLYCLONAL',
+            'CROPS', 'CROPS_SHADE', 'CROPS_TIMBER',
             'CROPS_FRUIT', 'CROPS_OTHER', 'CROPS_SPECIFY',
             'SURVEYOR', 'SURVEYOR NAME', 'SURVEYOR ORGANIZATION'
         ]
@@ -217,18 +236,24 @@ def main():
         if 'ORGANIZATION' in df_clean.columns:
             df_clean['ORGANIZATION'] = df_clean['ORGANIZATION'].astype(str).str.strip().str.upper()
 
-        # 3. Unified columns (coalesce FRIN/CRIN)
-        df_clean['PURPOSE'] = df_clean['FRIN_PURPOSE'].combine_first(df_clean['CRIN_PURPOSE'])
-        df_clean['YEAR'] = df_clean['FRIN_YEAR'].combine_first(df_clean['CRIN_YEAR'])
-        df_clean['AREA (Ha)'] = pd.to_numeric(df_clean['FRIN_AREA'], errors='coerce').combine_first(
-                                pd.to_numeric(df_clean['CRIN_AREA'], errors='coerce'))
-        df_clean['TREE COUNT'] = pd.to_numeric(df_clean['FRIN_TREE_COUNT'], errors='coerce').combine_first(
-                                 pd.to_numeric(df_clean['CRIN_TREE_COUNT'], errors='coerce'))
+        # 3. Unified columns (coalesce FRIN/CRIN) – safe if either column is missing
+        df_clean['PURPOSE']    = coalesce(df_clean, 'FRIN_PURPOSE', 'CRIN_PURPOSE')
+        df_clean['YEAR']       = coalesce(df_clean, 'FRIN_YEAR', 'CRIN_YEAR')
+        df_clean['AREA (Ha)']  = pd.to_numeric(
+            coalesce(df_clean, 'FRIN_AREA', 'CRIN_AREA'), errors='coerce'
+        )
+        df_clean['TREE COUNT'] = pd.to_numeric(
+            coalesce(df_clean, 'FRIN_TREE_COUNT', 'CRIN_TREE_COUNT'), errors='coerce'
+        )
 
         # GPS Location
-        df_clean['LATITUDE'] = pd.to_numeric(df_clean['LATITUDE'], errors='coerce')
+        df_clean['LATITUDE']  = pd.to_numeric(df_clean['LATITUDE'], errors='coerce')
         df_clean['LONGITUDE'] = pd.to_numeric(df_clean['LONGITUDE'], errors='coerce')
-        df_clean['GPS LOCATION'] = df_clean['LATITUDE'].astype(str) + ', ' + df_clean['LONGITUDE'].astype(str)
+        df_clean['GPS LOCATION'] = df_clean.apply(
+            lambda r: f"{r['LATITUDE']}, {r['LONGITUDE']}"
+            if pd.notna(r['LATITUDE']) and pd.notna(r['LONGITUDE']) else None,
+            axis=1,
+        )
 
         # 4. Variety explosion
         variety_cols = ['FRIN_VARIETIES', 'CRIN_CLONES', 'CRIN_OTHER_VARIETIES']
@@ -244,12 +269,16 @@ def main():
         df_clean['_combined_variety'] = df_clean.apply(combine_first_variety, axis=1)
 
         def split_varieties(val):
+            """
+            Multi-select values arrive comma-separated (do_not_split_multi_selects=true).
+            Underscores inside a single variety represent spaces, e.g. 'F3_Amazon' -> 'F3 AMAZON'.
+            So: split on comma FIRST, then replace '_' with ' ' inside each token.
+            """
             if pd.isna(val) or str(val).strip() == '':
                 return []
             val = str(val).strip().upper()
-            tokens = val.split()
-            tokens = [t.replace('_', ' ') for t in tokens]
-            return tokens
+            parts = [p.strip() for p in val.split(',') if p.strip()]
+            return [p.replace('_', ' ') for p in parts]
 
         df_clean['_variety_list'] = df_clean['_combined_variety'].apply(split_varieties)
 
@@ -319,6 +348,7 @@ def main():
         os.unlink(cleaned_path)
 
     logger.info("Cocoa Seed Garden Pipeline completed successfully")
+
 
 if __name__ == "__main__":
     main()
