@@ -33,15 +33,24 @@ def clean_text(val):
 
 def split_and_clean(val):
     """
-    Split a multi-select cell on commas/semicolons FIRST, then convert
-    underscores inside each token to spaces. Never split on whitespace –
-    species names legitimately contain spaces (e.g. 'Terminalia superba',
-    'F3 Amazon').
+    Split by ; , or whitespace FIRST, then replace '_' with ' ' inside each part.
+
+    This preserves underscore-joined species names such as 'F3_Amazon'
+    (which become 'F3 Amazon') while still splitting genuine multi-value
+    lists like 'F3_Amazon, Mahogany' or 'Mahogany Cocoa'.
     """
     if pd.isna(val) or not str(val).strip():
         return []
-    parts = [p.strip() for p in re.split(r'[;,]', str(val)) if p.strip()]
-    return [p.replace('_', ' ') for p in parts]
+    val = str(val).strip()
+    # NOTE: split on the original string BEFORE touching underscores
+    parts = re.split(r'[;,\s]+', val)
+    cleaned = []
+    for p in parts:
+        p = p.replace('_', ' ').strip()
+        p = ' '.join(p.split())  # collapse any double spaces
+        if p:
+            cleaned.append(p)
+    return cleaned
 
 
 def main():
@@ -135,7 +144,7 @@ def main():
         }
         df_base.rename(columns=rename_map, inplace=True)
 
-        # 3. Clean text columns (species columns intentionally NOT cleaned here)
+        # 3. Clean text columns
         text_cols = ['NAME', 'ORGANIZATION', 'ENTITY TYPE', 'PURPOSE', 'ZONE', 'STATE',
                      'LGA', 'CITY', 'SEED SOURCE STATE', 'SEED SOURCE LGA', 'SEED SOURCE CITY']
         for col in text_cols:
@@ -145,17 +154,9 @@ def main():
         # 4. GPS and numeric conversions
         df_base['LATITUDE'] = pd.to_numeric(df_base['LATITUDE'], errors='coerce')
         df_base['LONGITUDE'] = pd.to_numeric(df_base['LONGITUDE'], errors='coerce')
-        df_base['GPS LOCATION'] = df_base.apply(
-            lambda r: f"{r['LATITUDE']}, {r['LONGITUDE']}"
-            if pd.notna(r['LATITUDE']) and pd.notna(r['LONGITUDE']) else None,
-            axis=1,
-        )
+        df_base['GPS LOCATION'] = df_base['LATITUDE'].astype(str) + ', ' + df_base['LONGITUDE'].astype(str)
 
-        for num_col in ['TOTAL TREES', 'YEAR PRODUCED']:
-            if num_col in df_base.columns:
-                df_base[num_col] = pd.to_numeric(df_base[num_col], errors='coerce')
-
-        # 5. INDEX (1‑based, surrogate for the farmer record)
+        # 5. INDEX (1‑based)
         df_base = df_base.reset_index(drop=True)
         df_base.index = df_base.index + 1
         df_base.index.name = 'INDEX'
@@ -167,39 +168,43 @@ def main():
         flag_to_category = {
             'SHADE_FLAG': 'Shade',
             'TIMBER_FLAG': 'Timber',
-            'FRUIT_FLAG': 'Fruit',
-        }
-        # Which column holds the species text for each category
-        category_text_source = {
-            'Shade':  'OTHER_SHADE_TEXT',
-            'Timber': 'TIMBER_FLAG',
-            'Fruit':  'FRUIT_FLAG',
+            'FRUIT_FLAG': 'Fruit'
         }
 
         records = []
-        for _, row in df_base.iterrows():
+        for idx, row in df_base.iterrows():
             base_row = row.to_dict()
             for flag_col in flag_cols_existing:
                 flag_val = row.get(flag_col, None)
-                if pd.isna(flag_val) or str(flag_val).strip() == '':
-                    continue
+                # ---- FIX: treat any non‑empty value as category present ----
+                if pd.notna(flag_val) and str(flag_val).strip() != '':
+                    category = flag_to_category[flag_col]
+                    # Determine the text column containing species names
+                    if category == 'Shade':
+                        text_val = row.get('OTHER_SHADE_TEXT', None)
+                    elif category == 'Timber':
+                        text_val = row.get('TIMBER_FLAG', None)
+                        if pd.isna(text_val) or not str(text_val).strip():
+                            text_val = row.get('OTHER_SHADE_TEXT', None)
+                    else:  # Fruit
+                        text_val = row.get('FRUIT_FLAG', None)
+                        if pd.isna(text_val) or not str(text_val).strip():
+                            text_val = row.get('OTHER_SHADE_TEXT', None)
 
-                category = flag_to_category[flag_col]
-                text_col = category_text_source[category]
-                text_val = row.get(text_col, None)
-
-                species_list = split_and_clean(text_val)
-                if species_list:
-                    for species in species_list:
+                    species_list = split_and_clean(text_val)
+                    if species_list:
+                        for species in species_list:
+                            record = base_row.copy()
+                            record['CATEGORY'] = category
+                            record['SPECIES'] = clean_text(species)
+                            record['QUANTITY'] = 0
+                            records.append(record)
+                    else:
                         record = base_row.copy()
                         record['CATEGORY'] = category
-                        record['SPECIES']  = species
+                        record['SPECIES'] = 'Unspecified'
+                        record['QUANTITY'] = 0
                         records.append(record)
-                else:
-                    record = base_row.copy()
-                    record['CATEGORY'] = category
-                    record['SPECIES']  = 'Unspecified'
-                    records.append(record)
 
         if not records:
             logger.warning("No flagged categories found. Check your flag columns.")
