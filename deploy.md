@@ -17,7 +17,7 @@ Create or update a Render **Web Service** connected to `higna/Portfolio`:
 
 Use Docker on Render so the service has Python and the packages in `apps/server/worker/requirements.txt` available at runtime. The image sets `PYTHON_BIN` to that installed environment. It also includes the native libraries required by OpenCV and pyzbar. The Dockerfile's start command runs pending TypeORM migrations before starting Nest. Render provides `PORT`; the server listens on that port and binds to `0.0.0.0` (Render's default is `10000`).
 
-Set these environment variables in the Render service's **Environment** page. The ignored local `.env.production` can be imported there with **Add from .env**, after replacing the Redis placeholder.
+Set the server variables in the Render service's **Environment** page. Import the ignored `.env.production.server` with **Add from .env**, then replace the Redis placeholder with the Render Key Value internal URL. The separate `.env.production.client` contains only `VITE_*` values for Vercel.
 
 | Variable | Production value |
 | --- | --- |
@@ -32,7 +32,7 @@ Set these environment variables in the Render service's **Environment** page. Th
 | `KEEP_ALIVE_ENABLED` | `true` |
 | `KEEP_ALIVE_PING_PATH` | `/health/live` |
 
-Copy the remaining application secrets from `.env.production` into Render as well. Do not commit `.env.production`. Create a Render Key Value instance in the same region as the API, then copy its **internal** connection URL into `REDIS_URL`; this app requires Redis for global request throttling. Render assigns internal and external URLs separately and recommends the internal URL for services in the same region ([Render Key Value docs](https://render.com/docs/key-value)).
+Keep `.env.production.server` and `.env.production.client` out of Git. Create a Render Key Value instance in the same region as the API, then copy its **internal** connection URL into `REDIS_URL`; this app requires Redis for global request throttling. Render assigns internal and external URLs separately and recommends the internal URL for services in the same region ([Render Key Value docs](https://render.com/docs/key-value)).
 
 The current production API and frontend URLs are already used in the local production environment file. If either service URL changes, update `FRONTEND_URL` on Render and `VITE_API_URL` on Vercel, and update the Google OAuth callback URL in both Render and the Google OAuth client configuration.
 
@@ -49,7 +49,7 @@ Create or update a Vercel project connected to the same Git repository:
 
 Keep Vercel's monorepo source access enabled so the app can use the repository's npm workspace and root lockfile ([Vercel monorepo docs](https://vercel.com/docs/monorepos/monorepo-faq)). The client includes `apps/client/vercel.json` for SPA route rewrites.
 
-Set these variables for the Vercel **Production** environment:
+Import `.env.production.client` in the Vercel project settings, or set these variables for the Vercel **Production** environment:
 
 | Variable | Value |
 | --- | --- |

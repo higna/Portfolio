@@ -26,6 +26,7 @@ dist-ssr
 # Environment files
 .env
 .env.production
+.env.production.*
 apps/server/.env
 apps/client/.env
 /test

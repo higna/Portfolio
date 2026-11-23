@@ -10,9 +10,7 @@ export class AddUserFullName1795434219653 implements MigrationInterface {
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      'ALTER TABLE "users" DROP COLUMN IF EXISTS "fullName"',
-    );
+  async down(): Promise<void> {
+    // Keep this additive migration non-destructive so user profile data survives rollback.
   }
 }
