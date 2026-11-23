@@ -4,6 +4,7 @@ import { spawn } from 'child_process';
 import { join } from 'path';
 import axios from 'axios';
 import AdmZip from 'adm-zip';
+import { getPythonExecutable } from '../common/python-runtime';
 
 export interface ExportOptions {
   fileType?: string;
@@ -39,7 +40,7 @@ export class OnaService {
 
     return new Promise((resolve, reject) => {
       const scriptPath = join(process.cwd(), 'worker', 'scripts', 'list_ona_forms.py');
-      const pythonProcess = spawn('python', [scriptPath, apiKey, baseUrl]);
+      const pythonProcess = spawn(getPythonExecutable(), [scriptPath, apiKey, baseUrl]);
       let output = '', errorOutput = '';
 
       pythonProcess.stdout.on('data', (data) => { output += data.toString(); });

@@ -4,6 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { writeFileSync, mkdirSync, unlinkSync, rmdirSync } from 'fs';
 import { v4 as uuid } from 'uuid';
+import { getPythonExecutable } from '../common/python-runtime';
 
 @Injectable()
 export class InterpreterService {
@@ -16,7 +17,7 @@ export class InterpreterService {
     const scriptPath = join(process.cwd(), 'worker', 'scripts', 'interpreter', 'interpret.py');
 
     return new Promise((resolve, reject) => {
-      const proc = spawn('python', [scriptPath, imagePath]);
+      const proc = spawn(getPythonExecutable(), [scriptPath, imagePath]);
       let output = '';
       let err = '';
 

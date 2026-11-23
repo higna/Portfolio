@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+apps/server/worker/.venv/
 dist
 dist-ssr
 *.local
@@ -22,8 +23,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Environment files
 .env
-"" 
-"# Environment files" 
-"apps/server/.env" 
-"apps/client/.env" 
+.env.production
+apps/server/.env
+apps/client/.env
+/test

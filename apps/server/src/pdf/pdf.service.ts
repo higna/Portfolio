@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { UserRole } from '../users/entities/user.entity';
+import { getPythonExecutable } from '../common/python-runtime';
 
 @Injectable()
 export class PdfService {
@@ -26,7 +27,7 @@ export class PdfService {
     const scriptPath = join(process.cwd(), 'worker', 'scripts', 'pdf', 'merge_pdfs.py');
 
     return new Promise((resolve, reject) => {
-      const proc = spawn('python', [scriptPath, workDir, outputPath]);
+      const proc = spawn(getPythonExecutable(), [scriptPath, workDir, outputPath]);
       let err = '';
 
       proc.stderr.on('data', (data) => {
@@ -71,7 +72,7 @@ export class PdfService {
     const scriptPath = join(process.cwd(), 'worker', 'scripts', 'pdf', 'convert_images_to_pdf.py');
 
     return new Promise((resolve, reject) => {
-      const proc = spawn('python', [scriptPath, workDir, outputPath]);
+      const proc = spawn(getPythonExecutable(), [scriptPath, workDir, outputPath]);
       let err = '';
 
       proc.stderr.on('data', (data) => {

@@ -1,0 +1,84 @@
+name: portfolio
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio}
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-2555}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-2525}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  server:
+    build:
+      context: .
+      dockerfile: ops/server/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "2500"
+      BACKEND_PORT: "2500"
+      BACKEND_URL: http://server:2500
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:2000}
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER:-portfolio}:${POSTGRES_PASSWORD:-portfolio_dev}@postgres:5432/${POSTGRES_DB:-portfolio}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${BACKEND_HOST_PORT:-2500}:2500"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:2500/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: ops/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:2500}
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${WEB_HOST_PORT:-2000}:8080"
+
+volumes:
+  postgres_data:
+    name: portfolio_pgdata
+  redis_data:
+    name: portfolio_redisdata

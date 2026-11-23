@@ -16,6 +16,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { spawn } from 'child_process';
+import { getPythonExecutable } from '../common/python-runtime';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { existsSync, unlinkSync, createReadStream } from 'fs';
@@ -116,7 +117,7 @@ export class OnaController {
     };
 
     const proc = spawn(
-      'python',
+      getPythonExecutable(),
       [scriptPath, apiKey, baseUrl, formId, outputPath],
       { env },
     );

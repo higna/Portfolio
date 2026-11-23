@@ -5,9 +5,22 @@
         "apps/*"
     ],
     "scripts": {
-        "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+        "dev": "npm run db:up && concurrently \"npm run dev:server\" \"npm run dev:client\"",
         "dev:server": "npm --workspace=apps/server run dev",
-        "dev:client": "npm --workspace=apps/client run dev"
+        "dev:client": "npm --workspace=apps/client run dev",
+        "setup:worker": "python3 -m venv apps/server/worker/.venv && apps/server/worker/.venv/bin/python -m pip install --upgrade pip && apps/server/worker/.venv/bin/python -m pip install -r apps/server/worker/requirements.txt",
+        "build:server": "npm --workspace=apps/server run build",
+        "build:client": "npm --workspace=apps/client run build",
+        "build": "npm run build:server && npm run build:client",
+        "start:server": "npm --workspace=apps/server run start:prod",
+        "db:up": "docker compose up -d --wait postgres redis",
+        "db:down": "docker compose stop postgres redis",
+        "db:logs": "docker compose logs -f postgres redis",
+        "db:run": "npm run migration:run",
+        "migration:run": "npm --workspace=apps/server run migration:run",
+        "migration:generate": "npm --workspace=apps/server run migration:generate --",
+        "migration:revert": "npm --workspace=apps/server run migration:revert",
+        "migration:show": "npm --workspace=apps/server run migration:show"
     },
     "dependencies": {
         "concurrently": "^10.0.3",

@@ -1,4 +1,14 @@
-node_modules
-dist
+**/node_modules
+**/dist
 .git
+**/.git
 .env
+**/.env
+**/.env.*
+!**/.env.example
+apps/server/output
+apps/server/worker/venv
+apps/server/worker/.venv
+**/__pycache__
+**/*.pyc
+/test

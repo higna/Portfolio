@@ -10,3 +10,4 @@ PyPDF2
 openpyxl
 opencv-python-headless
 pyzbar
+playwright

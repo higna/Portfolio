@@ -9,6 +9,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { EventsService } from '../common/events/events.service';
 import { UserRole } from '../users/entities/user.entity';
+import { getPythonExecutable } from '../common/python-runtime';
 
 @Injectable()
 export class PipelineService {
@@ -82,7 +83,7 @@ export class PipelineService {
       generateCharts ? 'true' : 'false',
     ];
 
-    const pythonProcess = spawn('python', args);
+    const pythonProcess = spawn(getPythonExecutable(), args);
     const stdoutStream = new Readable({ read() { } });
 
     pythonProcess.stdout.on('data', (data: Buffer) => {

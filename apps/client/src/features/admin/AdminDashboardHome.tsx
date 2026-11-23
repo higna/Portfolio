@@ -10,6 +10,7 @@ import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { createLogger } from '../../lib/logger';
 import toast from 'react-hot-toast';
+import KeepAliveAdminCard from './KeepAliveAdminCard';
 
 const DashboardAnalytics = lazy(() => import('./DashboardAnalytics'));
 const QuickAddModal = lazy(() => import('./QuickAddModal'));
@@ -285,6 +286,8 @@ export default function AdminDashboardHome() {
         </div>
 
         <div className="space-y-6">
+          <KeepAliveAdminCard />
+
           <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
             <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
               <ArrowRight className="w-5 h-5 text-base-content/50" /> Quick Links
