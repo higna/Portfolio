@@ -136,19 +136,16 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <h2 className="text-2xl font-bold tracking-tight">
-        {isSuperadmin ? "Profile Settings" : "My Profile"}
-      </h2>
-
+    <div className="mx-auto w-full max-w-screen-2xl space-y-6">
+      <div className="grid gap-6 lg:grid-cols-3">
       {/* Avatar & Identity */}
-      <div className="card bg-base-100 border border-base-content/10 shadow-sm p-6">
+      <div className="card border-t-2 border-warning bg-base-100 p-6 shadow-sm lg:col-span-1">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div
             className="relative avatar cursor-pointer group"
             onClick={() => document.getElementById("profileFileInput")?.click()}
           >
-            <div className="w-24 h-24 rounded-full ring-2 ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+            <div className="w-24 h-24 rounded-full ring-2 ring-warning ring-offset-base-100 ring-offset-2 overflow-hidden">
               {previewUrl ? (
                 <img
                   src={previewUrl}
@@ -185,7 +182,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Account Information */}
-      <div className="card bg-base-100 border border-base-content/10 shadow-sm p-6 space-y-6">
+      <div className="card border-t-2 border-warning bg-base-100 p-6 shadow-sm space-y-6 lg:col-span-2">
         <div className="flex items-center gap-3 border-b border-base-content/10 pb-4">
           <User className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold">Account Information</h3>
@@ -223,9 +220,10 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Password Change */}
-      <div className="card bg-base-100 border border-base-content/10 shadow-sm p-6 space-y-6">
+      <div className="card border-t-2 border-warning bg-base-100 p-6 shadow-sm space-y-6">
         <div className="flex items-center justify-between border-b border-base-content/10 pb-4">
           <div className="flex items-center gap-3">
             <Lock className="w-5 h-5 text-primary" />
@@ -432,7 +430,7 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="btn btn-primary gap-2 min-w-35"
+          className="btn btn-warning gap-2 min-w-35"
         >
           {saving ? (
             <Loader2 className="w-4 h-4 animate-spin" />

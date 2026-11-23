@@ -76,7 +76,7 @@ export default function ExperienceTimeline() {
         }}
       />
 
-      <div className="max-w-5xl mx-auto px-4 relative z-10">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.h2
           initial={{ opacity: 0, y: -10 }}
           whileInView={{ opacity: 1, y: 0 }}

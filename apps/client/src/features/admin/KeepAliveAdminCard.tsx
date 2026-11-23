@@ -29,7 +29,7 @@ export default function KeepAliveAdminCard() {
     finally { setBusy(false); }
   };
 
-  return <section className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
+  return <section className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
     <h4 className="text-sm font-semibold text-base-content/70 flex items-center gap-2 mb-4"><Activity className="w-4 h-4 text-primary" /> Service Keep-Alive</h4>
     {!state && !error && <p className="text-sm opacity-60">Loading keep-alive status…</p>}
     {state && <><div className="space-y-1 text-sm">

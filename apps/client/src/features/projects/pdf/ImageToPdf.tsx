@@ -83,15 +83,8 @@ export default function ImageToPdf() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 font-['Cormorant_Garamond']">
-          Image to PDF
-        </h1>
-        <p className="text-base-content/60 mb-8">
-          Convert one or more images into a single PDF file
-        </p>
-
+    <div>
+      <div className="max-w-screen-2xl mx-auto">
         <div className="max-w-lg mx-auto">
           <div className="card bg-base-100 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary to-accent" />

@@ -133,7 +133,7 @@ export default function AdminExperience() {
   };
 
   return (
-    <div className="relative max-w-6xl w-full space-y-6">
+    <div className="relative max-w-screen-2xl w-full space-y-6">
       {/* Subtle dot pattern background */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
@@ -144,13 +144,7 @@ export default function AdminExperience() {
         }}
       />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Experience</h2>
-          <p className="text-sm text-base-content/60 mt-1">
-            Manage your professional work history
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <button
           onClick={handleAddNew}
           className="btn btn-primary btn-sm gap-2 shadow-sm hover:shadow-md transition-shadow"

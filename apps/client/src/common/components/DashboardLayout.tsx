@@ -36,6 +36,47 @@ import CommandPalette from './CommandPalette';
 
 const logger = createLogger('DashboardLayout');
 
+const dashboardPageDetails: Record<string, { title: string; description: string }> = {
+  '/dashboard/profile': { title: 'Profile settings', description: 'Manage your account, security, and public portfolio details.' },
+  '/dashboard/users': { title: 'Users', description: 'Review accounts and manage access to your workspace.' },
+  '/dashboard/skills': { title: 'Skills', description: 'Manage your technical skills and proficiency levels.' },
+  '/dashboard/projects': { title: 'Projects', description: 'Manage the projects featured in your portfolio.' },
+  '/dashboard/certifications': { title: 'Certifications', description: 'Manage your professional certifications.' },
+  '/dashboard/education': { title: 'Education', description: 'Manage your education history.' },
+  '/dashboard/experience': { title: 'Experience', description: 'Manage your professional experience.' },
+  '/dashboard/data/download': { title: 'Data download', description: 'Export portfolio and account data.' },
+  '/dashboard/data/pipeline': { title: 'Data pipeline', description: 'Run and monitor portfolio data workflows.' },
+  '/dashboard/campaign': { title: 'Campaign studio', description: 'Create and manage campaign templates.' },
+  '/dashboard/pdf/merge': { title: 'PDF merger', description: 'Combine documents into a single PDF.' },
+  '/dashboard/pdf/images-to-pdf': { title: 'Image to PDF', description: 'Convert images into a single PDF document.' },
+  '/dashboard/barcode/generator': { title: 'Barcode generator', description: 'Create and download custom barcodes.' },
+  '/dashboard/barcode/interpreter': { title: 'Barcode interpreter', description: 'Read barcode and QR code content.' },
+};
+
+function DashboardPageBanner({ pathname }: { pathname: string }) {
+  if (pathname === '/dashboard' || pathname === '/dashboard/chat') return null;
+  const exact = dashboardPageDetails[pathname];
+  const page = exact
+    ?? (pathname.startsWith('/dashboard/users/')
+      ? { title: 'User details', description: 'Review account information and access.' }
+      : pathname.startsWith('/dashboard/campaign/create')
+        ? { title: 'Create campaign template', description: 'Design a personalised flyer overlay with a photo placeholder and name.' }
+        : pathname.startsWith('/dashboard/campaign/edit/')
+          ? { title: 'Edit campaign template', description: 'Update the campaign design and sharing options.' }
+          : { title: 'Workspace', description: 'Manage your portfolio workspace.' });
+
+  return (
+    <header className="relative mb-7 overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] px-6 py-6 text-white shadow-lg sm:px-8 sm:py-7">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 size-64 rounded-full border border-warning/10" />
+      <div className="relative">
+        <p className="text-xs font-semibold uppercase tracking-[.22em] text-warning">Portfolio workspace</p>
+        <h1 className="mt-2 text-3xl font-medium tracking-tight sm:text-4xl">{page.title}</h1>
+        <p className="mt-1 text-base text-white/65">{page.description}</p>
+      </div>
+    </header>
+  );
+}
+
 interface NavItem {
   label: string;
   path?: string;
@@ -535,8 +576,9 @@ export default function DashboardLayout() {
         )}
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 min-w-0 overflow-y-auto overflow-x-clip bg-base-200/40 px-4 py-6 pb-16 sm:px-6 lg:px-8">
+          <div className="max-w-screen-2xl mx-auto">
+            <DashboardPageBanner pathname={location.pathname} />
             <Outlet />
           </div>
         </main>

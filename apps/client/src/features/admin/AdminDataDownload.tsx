@@ -254,7 +254,7 @@ export default function AdminDataDownload() {
     selectedIds.length > 0 && selectedIds.length < filteredAndSorted.length;
 
   return (
-    <div className="relative max-w-6xl w-full space-y-6">
+    <div className="relative max-w-screen-2xl w-full space-y-6">
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
         style={{
@@ -264,14 +264,8 @@ export default function AdminDataDownload() {
         }}
       />
 
-      {/* Header + Search + Download */}
+      {/* Search + Download */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Data Download</h2>
-          <p className="text-sm text-base-content/60 mt-1">
-            Select ONA forms to download as CSV
-          </p>
-        </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />

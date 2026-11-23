@@ -64,7 +64,7 @@ export default function ContactPage() {
           style={{ backgroundImage: "url('/contact.png')" }}
         />
         <div className="absolute inset-0 bg-black/60" />
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 lg:px-12">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-white/70 hover:text-[#D4AF37] mb-6 transition-colors"
@@ -88,7 +88,7 @@ export default function ContactPage() {
 
       {/* Two‑column layout */}
       <section className="py-12 md:py-20 px-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-stretch">
             {/* Contact info cards */}
             <div className="flex flex-col space-y-6 h-full">

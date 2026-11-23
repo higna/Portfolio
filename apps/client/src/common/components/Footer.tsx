@@ -21,7 +21,7 @@ export default function Footer() {
 
   return (
     <footer className="relative bg-linear-to-b from-base-100 to-base-200 border-t border-base-content/10">
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <Link

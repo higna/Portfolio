@@ -136,7 +136,7 @@ export default function CampaignCreator() {
   };
 
   return (
-    <div className="relative max-w-7xl w-full space-y-6">
+    <div className="relative max-w-screen-2xl w-full space-y-6">
       {/* Subtle dot pattern background */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
@@ -145,15 +145,6 @@ export default function CampaignCreator() {
           backgroundSize: "24px 24px",
         }}
       />
-
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">
-          {isEditing ? "Edit Template" : "Campaign DP Template"}
-        </h2>
-        <p className="text-sm text-base-content/60 mt-1">
-          Design a personalised flyer overlay with a photo placeholder and name
-        </p>
-      </div>
 
       {/* Shareable link alert */}
       {shareableLink && (

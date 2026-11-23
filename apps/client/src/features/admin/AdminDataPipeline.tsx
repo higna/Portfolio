@@ -194,7 +194,7 @@ export default function AdminPipeline() {
     };
 
   return (
-    <div className="relative max-w-6xl w-full space-y-8">
+    <div className="relative max-w-screen-2xl w-full space-y-8">
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
         style={{
@@ -203,13 +203,6 @@ export default function AdminPipeline() {
           backgroundSize: "24px 24px",
         }}
       />
-
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Data Pipeline</h2>
-        <p className="text-sm text-base-content/60 mt-1">
-          Run ETL pipelines for your ONA forms
-        </p>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {pipelines.map((p) => {

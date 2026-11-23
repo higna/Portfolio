@@ -75,7 +75,7 @@ export default function MetricsCounter() {
 
   return (
     <section id="stats" className="relative py-10 sm:py-12 bg-base-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-base-300/60">
           {metrics.map((metric, index) => (
             <motion.div

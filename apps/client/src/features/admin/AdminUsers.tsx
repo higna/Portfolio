@@ -38,13 +38,7 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Users</h2>
-          <p className="text-sm text-base-content/60 mt-1">
-            Manage all registered accounts
-          </p>
-        </div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-4 py-2 bg-base-200 rounded-lg">
             <Users className="w-4 h-4 text-primary" />

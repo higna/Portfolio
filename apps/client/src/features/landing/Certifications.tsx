@@ -46,7 +46,7 @@ export default function Certifications() {
         }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4">
+      <div className="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.h2
           initial={{ opacity: 0, y: -10 }}
           whileInView={{ opacity: 1, y: 0 }}

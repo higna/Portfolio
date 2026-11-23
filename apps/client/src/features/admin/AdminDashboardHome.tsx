@@ -64,7 +64,7 @@ function Counter({ value }: { value: number }) {
 
 function StatSkeleton() {
   return (
-    <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-5 animate-pulse">
+    <div className="rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm animate-pulse">
       <div className="flex items-center justify-between">
         <div className="space-y-2 flex-1">
           <div className="h-3 bg-base-300 rounded w-20" />
@@ -150,10 +150,10 @@ export default function AdminDashboardHome() {
   };
 
   const statCards = [
-    { label: 'Users', count: stats?.users ?? 0, icon: Users, path: '/dashboard/users', color: 'text-blue-500' },
-    { label: 'Skills', count: stats?.skills ?? 0, icon: Wrench, path: '/dashboard/skills', color: 'text-purple-500' },
-    { label: 'Certifications', count: stats?.certifications ?? 0, icon: Award, path: '/dashboard/certifications', color: 'text-amber-500' },
-    { label: 'Projects', count: stats?.projects ?? 0, icon: Briefcase, path: '/dashboard/projects', color: 'text-emerald-500' },
+    { label: 'Users', count: stats?.users ?? 0, icon: Users, path: '/dashboard/users', color: 'text-primary' },
+    { label: 'Skills', count: stats?.skills ?? 0, icon: Wrench, path: '/dashboard/skills', color: 'text-secondary' },
+    { label: 'Certifications', count: stats?.certifications ?? 0, icon: Award, path: '/dashboard/certifications', color: 'text-warning' },
+    { label: 'Projects', count: stats?.projects ?? 0, icon: Briefcase, path: '/dashboard/projects', color: 'text-success' },
   ];
 
   const getGreeting = () => {
@@ -164,22 +164,14 @@ export default function AdminDashboardHome() {
   };
 
   return (
-    <div className="relative max-w-7xl w-full space-y-8">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #D4AF37 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-
-      <div className="card bg-linear-to-br from-base-100 to-base-200 border border-base-content/10 shadow-lg p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary via-accent to-secondary" />
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative mx-auto w-full max-w-screen-2xl space-y-7">
+      <header className="relative overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] p-6 text-white shadow-lg sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-20 size-64 rounded-full border border-warning/10" />
+        <div aria-hidden="true" className="pointer-events-none absolute -right-1 -top-12 size-48 rounded-full border border-warning/10" />
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="avatar">
-              <div className="w-16 h-16 rounded-2xl ring-2 ring-primary/30 overflow-hidden">
+              <div className="w-16 h-16 rounded-2xl ring-2 ring-warning/70 overflow-hidden">
                 {user?.picture ? (
                   <img src={user.picture} alt={user.fullName || ''} />
                 ) : (
@@ -190,34 +182,35 @@ export default function AdminDashboardHome() {
               </div>
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-base-content">
+              <p className="text-[10px] font-bold uppercase tracking-[.18em] text-warning">Platform operations · administrator workspace</p>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                 {getGreeting()}, {user?.fullName?.split(' ')[0] || user?.email}
               </h1>
-              <p className="text-base-content/60 mt-1 flex items-center gap-2">
-                <span className="badge badge-primary badge-sm">{user?.role}</span>
-                <span className="text-sm">Here's what's happening today.</span>
+              <p className="mt-2 flex items-center gap-2 text-sm text-white/70">
+                <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs">{user?.role}</span>
+                <span>Manage the portfolio and review recent activity.</span>
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button onClick={() => setShowQuickAdd(true)} className="btn btn-primary btn-sm gap-2 shadow-md hover:shadow-lg transition-all">
+            <button onClick={() => setShowQuickAdd(true)} className="btn btn-warning btn-sm gap-2">
               <Plus className="w-4 h-4" /> Quick Add
             </button>
-            <button onClick={handleExportAll} className="btn btn-outline btn-sm gap-2">
+            <button onClick={handleExportAll} className="btn btn-sm gap-2 border-white/25 bg-white/5 text-white hover:bg-white/15">
               <Download className="w-4 h-4" /> Export All
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {loading
           ? [1, 2, 3, 4].map((i) => <StatSkeleton key={i} />)
           : statCards.map((card) => (
               <Link
                 key={card.label}
                 to={card.path}
-                className="group card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all p-5"
+                className="group card rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -238,8 +231,8 @@ export default function AdminDashboardHome() {
         <DashboardAnalytics />
       </Suspense>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2 rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
           <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
             <ActivityIcon className="w-5 h-5 text-base-content/50" /> Activity Feed
           </h3>
@@ -288,7 +281,7 @@ export default function AdminDashboardHome() {
         <div className="space-y-6">
           <KeepAliveAdminCard />
 
-          <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
+          <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
             <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
               <ArrowRight className="w-5 h-5 text-base-content/50" /> Quick Links
             </h3>
@@ -317,7 +310,7 @@ export default function AdminDashboardHome() {
             </div>
           </div>
 
-          <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
+          <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
             <h4 className="text-sm font-semibold text-base-content/70 flex items-center gap-2 mb-4">
               <Workflow className="w-4 h-4 text-primary" /> Pipeline Status
             </h4>
@@ -337,9 +330,9 @@ export default function AdminDashboardHome() {
             </div>
           </div>
 
-          <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
+          <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
             <h4 className="text-sm font-semibold text-base-content/70 flex items-center gap-2 mb-4">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" /> System Health
+              <ShieldCheck className="w-4 h-4 text-success" /> System Health
             </h4>
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between">

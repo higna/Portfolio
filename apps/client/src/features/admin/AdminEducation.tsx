@@ -103,7 +103,7 @@ export default function AdminEducation() {
   };
 
   return (
-    <div className="relative max-w-6xl w-full space-y-6">
+    <div className="relative max-w-screen-2xl w-full space-y-6">
       {/* Subtle dot pattern background */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
         style={{
@@ -112,11 +112,7 @@ export default function AdminEducation() {
         }}
       />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Education</h2>
-          <p className="text-sm text-base-content/60 mt-1">Manage your academic background</p>
-        </div>
+      <div className="flex items-center justify-end">
         <button onClick={handleAddNew} className="btn btn-primary btn-sm gap-2 shadow-sm hover:shadow-md transition-shadow">
           <Plus className="w-4 h-4" /> Add New
         </button>

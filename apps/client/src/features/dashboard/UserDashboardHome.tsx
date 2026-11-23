@@ -83,7 +83,7 @@ function ToolCard({ tool, usage, index, onOpen }: { tool: any; usage: ToolUsage;
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
       whileHover={{ scale: 1.02, y: -2 }}
-      className="group relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-sm hover:shadow-xl transition-shadow"
+      className="group relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
     >
       <div className={`absolute inset-0 bg-linear-to-br ${tool.gradient} opacity-0 group-hover:opacity-20 transition-opacity`} />
       <div className="p-5 relative z-10 flex flex-col h-full">
@@ -121,10 +121,13 @@ function OnboardingChecklist({ stats, usage }: { stats: UserStats | null; usage:
   const total = items.length;
 
   return (
-    <div className="card bg-base-100 border border-base-content/10 p-5">
-      <h3 className="font-semibold flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-primary" /> Getting Started
-      </h3>
+    <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
+      <div>
+        <h3 className="font-semibold flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" /> Getting started
+        </h3>
+        <p className="mt-1 text-xs text-base-content/55">A few steps to get more from your workspace.</p>
+      </div>
       <div className="mt-4 space-y-2">
         {items.map((item, idx) => (
           <div key={idx} className="flex items-center gap-2 text-sm">
@@ -277,23 +280,15 @@ export default function UserDashboardHome() {
   }, [usage, tools]);
 
   return (
-    <div className="relative max-w-7xl mx-auto space-y-8">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #D4AF37 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-
+    <div className="relative mx-auto w-full max-w-screen-2xl space-y-7">
       {/* Hero Header */}
-      <div className="card bg-linear-to-br from-base-100 to-base-200 border border-base-content/10 shadow-lg p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary via-accent to-secondary" />
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <header className="relative overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] p-6 text-white shadow-lg sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-20 size-64 rounded-full border border-warning/10" />
+        <div aria-hidden="true" className="pointer-events-none absolute -right-1 -top-12 size-48 rounded-full border border-warning/10" />
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="avatar">
-              <div className="w-16 h-16 rounded-2xl ring-2 ring-primary/30 overflow-hidden">
+              <div className="w-16 h-16 rounded-2xl ring-2 ring-warning/70 overflow-hidden">
                 {user?.picture ? (
                   <img src={user.picture} alt={user.fullName || ''} />
                 ) : (
@@ -307,30 +302,31 @@ export default function UserDashboardHome() {
               </div>
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-base-content">
+              <p className="text-[10px] font-bold uppercase tracking-[.18em] text-warning">Your workspace</p>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                 {getGreeting()}, {user?.fullName?.split(' ')[0] || user?.email}
               </h1>
-              <p className="text-base-content/60 mt-1 flex items-center gap-2">
-                <span className="badge badge-primary badge-sm">{user?.role}</span>
-                <span className="text-sm">Here's what's happening today.</span>
+              <p className="mt-2 flex items-center gap-2 text-sm text-white/70">
+                <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs">{user?.role}</span>
+                <span>Pick up where you left off.</span>
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => handleOpenTool('/dashboard/chat')} className="btn btn-primary btn-sm gap-2 shadow-md hover:shadow-lg transition-all">
+            <button onClick={() => handleOpenTool('/dashboard/chat')} className="btn btn-warning btn-sm gap-2">
               <Plus className="w-4 h-4" /> New Chat
             </button>
-            <button onClick={() => navigate('/dashboard/profile')} className="btn btn-outline btn-sm gap-2">
+            <button onClick={() => navigate('/dashboard/profile')} className="btn btn-sm gap-2 border-white/25 bg-white/5 text-white hover:bg-white/15">
               <UserIcon className="w-4 h-4" /> Edit Profile
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
         {quickActions.map((action) => (
-          <button key={action.label} onClick={action.action} className="btn btn-sm btn-outline gap-2">
+          <button key={action.label} onClick={action.action} className="btn btn-sm gap-2 border-base-content/10 bg-base-100 shadow-sm hover:border-primary/25 hover:bg-primary/5">
             <action.icon className="w-4 h-4" />
             {action.label}
           </button>
@@ -338,8 +334,8 @@ export default function UserDashboardHome() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="group card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all p-5 flex items-center gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
             <MessageCircle className="w-6 h-6" />
           </div>
@@ -350,7 +346,7 @@ export default function UserDashboardHome() {
             </p>
           </div>
         </div>
-        <div className="group card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all p-5 flex items-center gap-4">
+        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <div className="p-3 rounded-xl bg-secondary/10 text-secondary shrink-0">
             <FileText className="w-6 h-6" />
           </div>
@@ -361,7 +357,7 @@ export default function UserDashboardHome() {
             </p>
           </div>
         </div>
-        <div className="group card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all p-5 flex items-center gap-4">
+        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <div className="p-3 rounded-xl bg-accent/10 text-accent shrink-0">
             <Sparkles className="w-6 h-6" />
           </div>
@@ -373,9 +369,9 @@ export default function UserDashboardHome() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,1fr)_minmax(0,1.2fr)]">
         {/* Profile Completion */}
-        <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6 flex flex-col items-center">
+        <div className="flex flex-col items-center rounded-3xl border border-base-content/10 bg-base-100 p-6 shadow-sm">
           <div className="radial-progress text-primary" style={{ "--value": profileCompletion, "--size": "6rem", "--thickness": "0.5rem" } as React.CSSProperties}>
             <span className="text-xl font-bold">{profileCompletion}%</span>
           </div>
@@ -397,7 +393,7 @@ export default function UserDashboardHome() {
         <OnboardingChecklist stats={stats} usage={usage} />
 
         {/* Activity Feed */}
-        <div className="card bg-base-100/40 backdrop-blur-md border border-base-content/10 shadow-md p-6">
+        <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
           <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
             <Clock className="w-5 h-5 text-base-content/50" /> Recent Activity
           </h3>
@@ -447,7 +443,7 @@ export default function UserDashboardHome() {
 
       {/* Dynamic Recommendation */}
       {recommendation() && (
-        <div className="card bg-base-100/40 border border-dashed border-primary/20 p-5">
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
           <p className="text-sm text-base-content/70 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             {recommendation()}

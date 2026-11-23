@@ -172,7 +172,7 @@ export default function ProjectsPage() {
         <div className="absolute inset-0 bg-linear-to-r from-black via-black/70 to-transparent" />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 lg:px-12">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-white/70 hover:text-[#D4AF37] mb-6 transition-colors"
@@ -201,7 +201,7 @@ export default function ProjectsPage() {
 
       {/* Filter bar with horizontal scrollable pills and multi‑select */}
       <div className="sticky top-16 z-40 bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <div className="relative w-full md:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-base-content/40" />
@@ -276,7 +276,7 @@ export default function ProjectsPage() {
 
       {/* Project Grid */}
       <div className="py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-screen-2xl mx-auto">
           {loading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {Array.from({ length: 8 }).map((_, i) => (

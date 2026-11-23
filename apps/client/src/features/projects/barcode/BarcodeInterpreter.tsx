@@ -96,18 +96,8 @@ export default function BarcodeInterpreter() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 py-12 px-4">
+    <div>
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4">
-            <ScanLine className="w-7 h-7 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">Barcode / QR Interpreter</h1>
-          <p className="text-sm text-base-content/60 mt-2">
-            Upload or scan a barcode or QR code to decode its content
-          </p>
-        </div>
-
         <div className="card bg-base-100 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary to-accent" />
           <div className="p-6 space-y-5">

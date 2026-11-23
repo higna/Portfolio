@@ -43,7 +43,7 @@ export default function CampaignList() {
   };
 
   return (
-    <div className="relative max-w-6xl w-full space-y-6">
+    <div className="relative max-w-screen-2xl w-full space-y-6">
       {/* Subtle dot pattern background */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
@@ -53,13 +53,7 @@ export default function CampaignList() {
         }}
       />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Campaign DP Templates</h2>
-          <p className="text-sm text-base-content/60 mt-1">
-            Manage your personalised flyer templates
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <Link to="/dashboard/campaign/create" className="btn btn-primary gap-2 shadow-sm hover:shadow-md transition-all">
           <Plus className="w-4 h-4" /> Create New
         </Link>

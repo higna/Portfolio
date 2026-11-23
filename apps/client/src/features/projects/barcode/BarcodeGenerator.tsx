@@ -322,15 +322,8 @@ export default function BarcodeGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 font-['Cormorant_Garamond']">
-          QR / Barcode Generator
-        </h1>
-        <p className="text-base-content/60 mb-8">
-          Generate single codes or batches for printing.
-        </p>
-
+    <div>
+      <div className="max-w-screen-2xl mx-auto">
         {/* Mode tabs */}
         <div className="tabs tabs-boxed mb-6">
           <button
