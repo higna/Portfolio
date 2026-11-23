@@ -11,7 +11,7 @@ Create or update a Render **Web Service** connected to `higna/Portfolio`:
 | Root directory | Repository root |
 | Runtime | Docker |
 | Dockerfile path | `ops/server/Dockerfile` |
-| Docker build context | Repository root |
+| Docker build context | Repository rops/server/Dockerfileoot |
 | Docker command | Leave blank to use the Dockerfile `CMD` |
 | Health check path | `/health/live` |
 

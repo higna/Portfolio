@@ -8,7 +8,7 @@ RUN npm ci --no-audit --no-fund
 COPY apps/server ./apps/server
 RUN npm run build:server
 
-FROM python:3.11-slim AS worker
+FROM python:3.11-slim-bookworm AS worker
 ENV VIRTUAL_ENV=/opt/worker-venv
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
