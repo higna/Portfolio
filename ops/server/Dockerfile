@@ -22,7 +22,7 @@ ENV NODE_ENV=production
 WORKDIR /repo
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libzbar0 libglib2.0-0 \
+    libssl3 libzbar0 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 ENV PYTHON_BIN=/opt/worker-venv/bin/python
 COPY --from=worker /usr/local /usr/local

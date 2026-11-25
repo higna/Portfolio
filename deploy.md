@@ -11,7 +11,7 @@ Create or update a Render **Web Service** connected to `higna/Portfolio`:
 | Root directory | Repository root |
 | Runtime | Docker |
 | Dockerfile path | `ops/server/Dockerfile` |
-| Docker build context | Repository rops/server/Dockerfileoot |
+| Docker build context | Repository root (`.`) |
 | Docker command | Leave blank to use the Dockerfile `CMD` |
 | Health check path | `/health/live` |
 
@@ -60,9 +60,9 @@ Vite embeds `VITE_*` values at build time, so redeploy the client after changing
 
 ## Database migration notes
 
-The current production database already has a schema matching the entities, so migration generation found no changes and the migration runner reported none pending. No initial schema migration is committed yet. The existing database can continue to run, but a new empty PostgreSQL database needs a baseline migration before the app can use it. Generate that baseline against a separate empty scratch database, review it, and commit it before switching to a fresh production database.
+The initial baseline migration creates the schema on an empty PostgreSQL database. If the `users` table already exists, it skips schema creation so an existing database and its data are preserved. Future schema changes should be generated and reviewed locally, committed, and applied by the Render start command.
 
-For future schema changes, generate and review migrations locally, commit them, and let the Render start command apply them during deployment.
+The existing production database already has a schema matching the entities. Its first deployment with the baseline migration records the migration without recreating that schema.
 
 ## Deploy flow
 

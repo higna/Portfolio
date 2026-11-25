@@ -1,6 +1,6 @@
 # Database migrations
 
-TypeORM schema synchronization is disabled. Make schema changes in migrations and apply them with `npm run migration:run` from the repository root (or `npm run db:run`). The local development command runs pending migrations before starting Nest.
+TypeORM schema synchronization is disabled. The initial baseline migration creates the schema for a new empty database, and skips creation when the `users` table already exists. Make future schema changes in migrations and apply them with `npm run migration:run` from the repository root (or `npm run db:run`). The local development command runs pending migrations before starting Nest.
 
 Generate the default `SchemaUpdate` migration against the configured database:
 
