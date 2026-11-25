@@ -6,11 +6,10 @@ An npm workspace containing a NestJS API (`apps/server`) and a Vite/React client
 
 1. Copy `.env.example` to `.env` and fill in the required local and third-party values.
 2. Run `npm ci`.
-3. Run `npm run setup:worker` to create the Python worker environment and install its dependencies.
-4. Run `npm run db:up` to start PostgreSQL and Redis.
-5. Run `npm run dev` to apply pending migrations and start the API and client.
+3. Run `npm run dev`. It creates or repairs the Python worker environment and installs missing dependencies, starts PostgreSQL and Redis, applies pending migrations, and starts the API and client.
 
 The API uses port `2500`, the web client `2000`, PostgreSQL `2555`, and Redis `2525`. PostgreSQL and Redis are bound to loopback by Docker Compose.
+To prepare the Python worker without starting the app, run `npm run setup:worker`.
 
 ## VPS deployment with Docker Compose
 
@@ -57,7 +56,7 @@ docker compose logs -f server
 
 The server container runs pending migrations before Nest starts. The client image embeds `VITE_API_URL` during its build. The database and Redis use named Docker volumes and only bind to `127.0.0.1` on the VPS.
 
-**Fresh database note:** the repository currently has no initial baseline migration. A new empty PostgreSQL volume will not be initialized by the migration runner until a reviewed baseline migration is committed. Generate that baseline against a separate empty scratch database before relying on this guide for a fresh VPS database.
+**Fresh database note:** the initial baseline migration creates the schema for a new empty PostgreSQL database. On an existing database, it skips schema creation when the `users` table is present.
 
 ### 4. Add Caddy for HTTPS
 

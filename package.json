@@ -5,10 +5,10 @@
         "apps/*"
     ],
     "scripts": {
-        "dev": "npm run db:up && concurrently \"npm run dev:server\" \"npm run dev:client\"",
+        "dev": "npm run setup:worker && npm run db:up && concurrently \"npm run dev:server\" \"npm run dev:client\"",
         "dev:server": "npm --workspace=apps/server run dev",
         "dev:client": "npm --workspace=apps/client run dev",
-        "setup:worker": "python3 -m venv apps/server/worker/.venv && apps/server/worker/.venv/bin/python -m pip install --upgrade pip && apps/server/worker/.venv/bin/python -m pip install -r apps/server/worker/requirements.txt",
+        "setup:worker": "node scripts/setup-worker.cjs",
         "build:server": "npm --workspace=apps/server run build",
         "build:client": "npm --workspace=apps/client run build",
         "build": "npm run build:server && npm run build:client",
