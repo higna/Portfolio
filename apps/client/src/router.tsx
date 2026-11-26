@@ -41,6 +41,7 @@ import RequireRole from "./common/components/RequireRole";
 /* Admin Pages */
 import {
   AdminCertifications,
+  AdminCvTailor,
   AdminDataDownload,
   AdminDataPipeline,
   AdminEducation,
@@ -131,6 +132,7 @@ export default function AppRouter() {
               <Route path="/dashboard/certifications" element={<AdminCertifications />} />
               <Route path="/dashboard/education" element={<AdminEducation />} />
               <Route path="/dashboard/experience" element={<AdminExperience />} />
+              <Route path="/dashboard/cv-tailor" element={<AdminCvTailor />} />
               <Route path="/dashboard/skills" element={<AdminSkills />} />
               <Route path="/dashboard/projects" element={<AdminProjects />} />
               <Route path="/dashboard/data/download" element={<AdminDataDownload />} />

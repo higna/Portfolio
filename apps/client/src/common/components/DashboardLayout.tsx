@@ -54,7 +54,7 @@ const dashboardPageDetails: Record<string, { title: string; description: string 
 };
 
 function DashboardPageBanner({ pathname }: { pathname: string }) {
-  if (pathname === '/dashboard' || pathname === '/dashboard/chat') return null;
+  if (pathname === '/dashboard' || pathname === '/dashboard/chat' || pathname === '/dashboard/cv-tailor') return null;
   const exact = dashboardPageDetails[pathname];
   const page = exact
     ?? (pathname.startsWith('/dashboard/users/')
@@ -112,6 +112,7 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/certifications', label: 'Certifications', icon: Award },
         { path: '/dashboard/education', label: 'Education', icon: GraduationCap },
         { path: '/dashboard/experience', label: 'Experience', icon: Briefcase },
+        { path: '/dashboard/cv-tailor', label: 'Tailor CV', icon: FileText },
         { path: '/dashboard/projects', label: 'Projects', icon: FolderGit2 },
         { path: '/dashboard/skills', label: 'Skills', icon: Wrench },
       ],

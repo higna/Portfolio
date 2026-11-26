@@ -5,9 +5,10 @@ import { ChatHistory } from './entities/chat-history.entity';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ChatUsageService } from './chat-usage.service';
+import { TailoredDocument } from './entities/tailored-document.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ChatHistory]), PortfolioModule],
+  imports: [TypeOrmModule.forFeature([ChatHistory, TailoredDocument]), PortfolioModule],
   controllers: [ChatController],
   providers: [ChatService, ChatUsageService],
   exports: [ChatService],

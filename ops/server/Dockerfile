@@ -19,10 +19,16 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
 
 FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production
+ENV TECTONIC_BIN=/usr/local/bin/tectonic
 WORKDIR /repo
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl3 libzbar0 libglib2.0-0 \
+    libssl3 libzbar0 libglib2.0-0 ca-certificates curl \
+    && curl -fsSL 'https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/tectonic-0.17.0-x86_64-unknown-linux-gnu.tar.gz' -o /tmp/tectonic.tar.gz \
+    && tar -xzf /tmp/tectonic.tar.gz -C /usr/local/bin \
+    && chmod +x /usr/local/bin/tectonic \
+    && rm -f /tmp/tectonic.tar.gz \
+    && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
 ENV PYTHON_BIN=/opt/worker-venv/bin/python
 COPY --from=worker /usr/local /usr/local

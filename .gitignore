@@ -29,4 +29,5 @@ dist-ssr
 .env.production.*
 apps/server/.env
 apps/client/.env
+apps/server/.tools/
 /test
