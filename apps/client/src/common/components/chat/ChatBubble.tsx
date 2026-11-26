@@ -13,7 +13,6 @@ interface ChatBubbleProps {
   copied: boolean;
   editing: boolean;
   loading: boolean;
-  user?: any;
   onCopy: (content: string, id: string) => void;
   onRegenerate: () => void;
   onStartEdit: (id: string) => void;
@@ -29,7 +28,6 @@ export default function ChatBubble({
   copied,
   editing,
   loading,
-  user,
   onCopy,
   onRegenerate,
   onStartEdit,
@@ -43,17 +41,29 @@ export default function ChatBubble({
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <div className={`group flex gap-3 max-w-[95%] sm:max-w-[85%] ${isUser ? "flex-row-reverse" : ""}`}>
-        <ChatAvatar role={message.role} user={isUser ? user : undefined} />
+      <div
+        className={`group flex w-full max-w-[95%] gap-3 sm:max-w-[88%] ${
+          isUser ? "flex-row-reverse" : ""
+        }`}
+      >
+        {!isUser && <ChatAvatar role="ai" />}
 
-        <div className="flex flex-col gap-1 min-w-0">
+        <div className={`flex min-w-0 flex-col gap-1.5 ${isUser ? "items-end" : "items-start"}`}>
+          <div className={`flex items-center gap-2 px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-base-content/45 ${isUser ? "flex-row-reverse" : ""}`}>
+            {isUser ? "You" : "Higna AI"}
+            {message.pending && (
+              <span className="normal-case tracking-normal text-primary">
+                Writing…
+              </span>
+            )}
+          </div>
           {editing ? (
-            <div className="px-3 py-2 rounded-2xl bg-base-100/80 backdrop-blur-md border border-primary/50 shadow-[0_0_16px_rgba(212,175,55,0.15)] text-sm min-w-[16rem] max-w-full">
+            <div className="min-w-[16rem] max-w-full rounded-2xl border border-primary/40 bg-base-100 px-4 py-3 text-sm shadow-lg shadow-primary/5">
               <textarea
                 autoFocus
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                className="textarea textarea-ghost w-full resize-none p-0 min-h-12 focus:outline-none"
+                className="textarea textarea-ghost min-h-12 w-full resize-none p-0 focus:outline-none"
                 rows={2}
               />
               <div className="flex justify-end gap-1 mt-1">
@@ -69,12 +79,12 @@ export default function ChatBubble({
             <div
               className={`px-4 py-3 rounded-2xl text-sm leading-relaxed transition-all backdrop-blur-md ${
                 isUser
-                  ? "bg-base-100/70 border border-primary/20 shadow-[0_0_12px_rgba(212,175,55,0.1)] text-base-content"
-                  : "bg-base-100/70 border border-base-300/40 shadow-sm text-base-content"
+                  ? "rounded-tr-md border border-primary/20 bg-primary/10 text-base-content shadow-sm"
+                  : "rounded-tl-md border border-base-300/70 bg-base-100 text-base-content shadow-sm"
               }`}
             >
               {message.role === "ai" ? (
-                <div className="prose prose-sm max-w-none prose-headings:font-['Cormorant_Garamond']">
+                <div className="prose prose-sm max-w-none break-words prose-headings:font-['Cormorant_Garamond'] prose-a:text-primary prose-pre:overflow-x-auto">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content || " "}</ReactMarkdown>
                 </div>
               ) : (
@@ -84,25 +94,25 @@ export default function ChatBubble({
           )}
 
           {!editing && message.content && !message.pending && (
-            <div className={`flex gap-1 ${isUser ? "justify-end" : "justify-start"} opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity`}>
-              <button onClick={() => onCopy(message.content, message.id)} className="btn btn-ghost btn-xs" aria-label="Copy">
+            <div className={`flex gap-1 ${isUser ? "justify-end" : "justify-start"} opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100`}>
+              <button onClick={() => onCopy(message.content, message.id)} className="btn btn-ghost btn-xs rounded-lg" aria-label="Copy message" title="Copy message">
                 {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
               </button>
-              <button onClick={() => onDeleteMessage(message.id)} className="btn btn-ghost btn-xs" aria-label="Delete">
+              <button onClick={() => onDeleteMessage(message.id)} className="btn btn-ghost btn-xs rounded-lg" aria-label="Delete message" title="Delete message">
                 <Trash2 className="w-3 h-3" />
               </button>
               {isUser && !loading && (
-                <button onClick={() => onStartEdit(message.id)} className="btn btn-ghost btn-xs" aria-label="Edit">
+                <button onClick={() => onStartEdit(message.id)} className="btn btn-ghost btn-xs rounded-lg" aria-label="Edit message" title="Edit message">
                   <Pencil className="w-3 h-3" />
                 </button>
               )}
               {!isUser && onDownloadPdf && !loading && (
-                <button onClick={() => onDownloadPdf(message.content)} className="btn btn-ghost btn-xs" aria-label="Download PDF">
+                <button onClick={() => onDownloadPdf(message.content)} className="btn btn-ghost btn-xs rounded-lg" aria-label="Download response as PDF" title="Download response as PDF">
                   <Download className="w-3 h-3" />
                 </button>
               )}
               {!isUser && isLast && !loading && (
-                <button onClick={onRegenerate} className="btn btn-ghost btn-xs" aria-label="Regenerate">
+                <button onClick={onRegenerate} className="btn btn-ghost btn-xs rounded-lg" aria-label="Regenerate response" title="Regenerate response">
                   <RotateCcw className="w-3 h-3" />
                 </button>
               )}

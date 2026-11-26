@@ -38,6 +38,12 @@ export class Project {
   @Column({ type: 'int', default: 0 })
   order!: number;
 
+  @Column({ type: 'boolean', default: false })
+  isLocal!: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  link!: string | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 

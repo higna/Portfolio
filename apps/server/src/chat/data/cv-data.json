@@ -1,10 +1,10 @@
 {
   "profile": {
-    "fullName": "IGNA-IGBOKO HECTOR",
+    "fullName": "IGNA-IGBOKO HECTOR. C",
     "phone": "+234-916-040-9456",
     "linkedinUrl": "linkedin.com/in/hector-ignatius",
     "githubUrl": "github.com/higna",
-    "portfolioUrl": "higna.vercel.app",
+    "portfolioUrl": "http://higna.vercel.app",
     "professionalSummary": "Full‑Stack Developer & Data Engineer with a passion for automation, AI integration, and clean architecture. I build production‑ready web applications, design scalable data pipelines, and turn complex workflows into simple, interactive tools. Experienced in Python, JavaScript/TypeScript, React, NestJS, PostgreSQL, cloud services, and AI APIs.",
     "languages": [
       "English (Fluent)",
@@ -309,9 +309,14 @@
       "slug": "cocoa-seed-tracker",
       "description": "Build and Manage the Cocoa Seed Tracker site, developed data collection tools, analyzed and visualized data.",
       "techStack": [
-        "WordPress"
+        "React",
+        "NestJS",
+        "TypeScript",
+        "NodeJS",
+        "TailwindCSS",
+        "DaisyUI"
       ],
-      "liveUrl": "https://seedtracker.org/cocoa",
+      "liveUrl": "https://cocoast.vercel.app",
       "githubUrl": "",
       "imageUrl": "https://res.cloudinary.com/dnocr1jcl/image/upload/v1785267664/portfolio/projects/Cocoa%20Seed%20Tracker-1785267659617.png",
       "isFeatured": true,
@@ -326,7 +331,7 @@
         "Looker"
       ],
       "liveUrl": "https://datastudio.google.com/reporting/1e3890a4-6d1b-4e2a-9ede-6eef45debd8d",
-      "githubUrl": "",
+      "githubUrl": null,
       "imageUrl": "https://res.cloudinary.com/dnocr1jcl/image/upload/v1785267925/portfolio/projects/OGFIMS%20Dashboard-1785267917542.png",
       "isFeatured": true,
       "order": 3
@@ -342,7 +347,7 @@
         "NodeJS"
       ],
       "liveUrl": "https://phytonet.vercel.app/",
-      "githubUrl": "",
+      "githubUrl": null,
       "imageUrl": "https://res.cloudinary.com/dnocr1jcl/image/upload/v1785268652/portfolio/projects/LabNetwork-1785268614375.png",
       "isFeatured": true,
       "order": 3
@@ -355,7 +360,7 @@
         "WordPress"
       ],
       "liveUrl": "https://bbtvalliance.org/newsite",
-      "githubUrl": "",
+      "githubUrl": null,
       "imageUrl": "https://res.cloudinary.com/dnocr1jcl/image/upload/v1785268103/portfolio/projects/BBTV-1785268097177.png",
       "isFeatured": true,
       "order": 4
@@ -370,7 +375,7 @@
         "NodeJS"
       ],
       "liveUrl": "https://jaynstan.vercel.app/",
-      "githubUrl": "",
+      "githubUrl": null,
       "imageUrl": "https://res.cloudinary.com/dnocr1jcl/image/upload/v1785268270/portfolio/projects/JaynStan-1785268265544.png",
       "isFeatured": true,
       "order": 5
@@ -385,7 +390,7 @@
         "ONA",
         "NestJS"
       ],
-      "liveUrl": "",
+      "liveUrl": null,
       "githubUrl": "https://github.com/higna/seed-tracker-etl",
       "imageUrl": "https://res.cloudinary.com/dnocr1jcl/image/upload/v1785348113/portfolio/projects/Data%20Pipeline-1785348111054.png",
       "isFeatured": false,
@@ -394,58 +399,81 @@
   ],
   "certifications": [
     {
+      "name": "Institutional Data Protection and Cyber Resilience",
+      "issuer": "Cybersecure Nigeria",
+      "date": "2026-11-25",
+      "url": "https://drive.google.com/file/d/17mTH17TKuijbTpFvkDj8XIBojIx4X8w7/view?usp=drive_link",
+      "order": 1
+    },
+    {
       "name": "Drone Based Phenotyping",
       "issuer": "CGIAR",
       "date": "2026-08-07",
-      "order": 0
+      "url": "https://drive.google.com/file/d/1yMQhp8Jl-IyKTO32w0vgH6eG3DqhpdQF/view?usp=sharing",
+      "order": 2
     },
     {
-      "name": "Best Programmer BSc. Computer Science",
-      "issuer": "Dominican University",
-      "date": "2020-10-30",
-      "order": 0
+      "name": "Market Compliance",
+      "issuer": "EProd",
+      "date": "2025-08-27",
+      "url": "https://drive.google.com/file/d/1Vh6F-M2SA3c_L_3f6e8zkKvewIsPyZnD/view?usp=drive_link",
+      "order": 3
     },
     {
       "name": "Python for Data Science, AI & Development",
       "issuer": "IBM",
       "date": "2024-09-01",
-      "order": 1
+      "url": "https://coursera.org/share/3ff950ac649e870a289c9a404561a2f4",
+      "order": 4
     },
     {
       "name": "Introduction to Statistical Analysis & Machine Learning using R",
       "issuer": "IITA",
       "date": "2024-04-01",
-      "order": 2
+      "url": "https://drive.google.com/file/d/1wuGH7qKSwyoAS770vvQnnGFUKwh5Qycv/view?usp=sharing",
+      "order": 5
     },
     {
       "name": "Essentials of Data Visualization using MS Excel",
       "issuer": "Acacia University",
       "date": "2024-02-01",
-      "order": 3
+      "url": "https://docs.uniathena.com/prod/course/certificate/124_1706881270_certificate.pdf",
+      "order": 6
     },
     {
       "name": "Technical Support Fundamentals",
       "issuer": "Google",
       "date": "2023-12-01",
-      "order": 4
+      "url": "https://drive.google.com/file/d/1RjZN7UNKvR1BOMsI8NB-zu6je1-XvrE3/view?usp=sharing",
+      "order": 7
     },
     {
       "name": "IT Security: Defense Against Digital Threats",
       "issuer": "Google",
       "date": "2023-11-01",
-      "order": 5
+      "url": "https://coursera.org/share/75f5732717272b2cf60d3325d02ede55",
+      "order": 8
     },
     {
       "name": "Basics of Digital Marketing",
       "issuer": "UniAthena",
       "date": "2023-11-01",
-      "order": 6
+      "url": "https://docs.uniathena.com/prod/course/certificate/628_1701076033_certificate.pdf",
+      "order": 9
     },
     {
       "name": "Use of Seed Tracker",
       "issuer": "CGIAR",
       "date": "2023-09-01",
-      "order": 7
+      "url": "https://drive.google.com/file/d/1rg_nubjs5hVCuH40uy4fUYeFoHsCZzXE/view?usp=sharing",
+      "order": 10
+    },
+    {
+      "name": "Best Programmer BSc. Computer Science",
+      "issuer": "Dominican University",
+      "date": "2020-10-30",
+      "url": "https://drive.google.com/file/d/1w93AVsIvjIV-k6zyyFEVZBS_3bjBH3nF/view?usp=sharing",
+      "order": 11
     }
   ]
 }

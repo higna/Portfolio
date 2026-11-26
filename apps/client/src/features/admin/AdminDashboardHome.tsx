@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Users, Wrench, Award, Briefcase, Clock, ArrowRight, Plus,
+  Users, Wrench, Award, Briefcase, ArrowRight, Plus,
   User, Download, Activity as ActivityIcon,
   FolderKanban, GraduationCap, Workflow, Zap, ShieldCheck,
   Server, CheckCircle2, AlertTriangle,
@@ -32,8 +32,12 @@ interface DashboardStats {
 }
 
 interface ActivityData {
-  users: any[];
-  projects: any[];
+  users: DashboardStats['recentUsers'];
+  projects: {
+    id: string;
+    title: string;
+    updatedAt: string;
+  }[];
 }
 
 type PipelineStatusMap = Record<string, { status: 'success' | 'failed'; time: string }>;
@@ -164,12 +168,13 @@ export default function AdminDashboardHome() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-screen-2xl space-y-7">
-      <header className="relative overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] p-6 text-white shadow-lg sm:p-8">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-20 size-64 rounded-full border border-warning/10" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-1 -top-12 size-48 rounded-full border border-warning/10" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="flex items-center gap-5">
+    <div className="relative mx-auto w-full max-w-screen-2xl space-y-5">
+      <header className="relative overflow-hidden rounded-3xl border border-warning/20 bg-[#10100e] px-5 py-5 text-white shadow-xl shadow-base-content/5 sm:px-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-32 size-72 rounded-full border border-warning/10" />
+        <div aria-hidden="true" className="pointer-events-none absolute right-20 -top-24 size-56 rounded-full border border-warning/10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-warning/[0.06] to-transparent" />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
             <div className="avatar">
               <div className="w-16 h-16 rounded-2xl ring-2 ring-warning/70 overflow-hidden">
                 {user?.picture ? (
@@ -181,22 +186,21 @@ export default function AdminDashboardHome() {
                 )}
               </div>
             </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[.18em] text-warning">Platform operations · administrator workspace</p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[.2em] text-warning">Administrator workspace</p>
+              <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                 {getGreeting()}, {user?.fullName?.split(' ')[0] || user?.email}
               </h1>
-              <p className="mt-2 flex items-center gap-2 text-sm text-white/70">
-                <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs">{user?.role}</span>
-                <span>Manage the portfolio and review recent activity.</span>
+              <p className="mt-1 text-sm text-white/60">
+                Your portfolio at a glance. Here’s what needs your attention.
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex shrink-0 flex-wrap gap-2">
             <button onClick={() => setShowQuickAdd(true)} className="btn btn-warning btn-sm gap-2">
               <Plus className="w-4 h-4" /> Quick Add
             </button>
-            <button onClick={handleExportAll} className="btn btn-sm gap-2 border-white/25 bg-white/5 text-white hover:bg-white/15">
+            <button onClick={handleExportAll} className="btn btn-sm gap-2 border-white/20 bg-white/5 text-white hover:bg-white/15">
               <Download className="w-4 h-4" /> Export All
             </button>
           </div>
@@ -210,17 +214,17 @@ export default function AdminDashboardHome() {
               <Link
                 key={card.label}
                 to={card.path}
-                className="group card rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
+                className="group card rounded-2xl border border-base-content/10 bg-base-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`grid size-10 shrink-0 place-items-center rounded-xl bg-base-200/70 transition-colors group-hover:bg-primary/10`}>
+                    <card.icon className={`size-5 ${card.color}`} />
+                  </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-base-content/50">{card.label}</p>
-                    <p className={`text-3xl font-semibold mt-1 ${card.color}`}>
+                    <p className="text-[11px] font-medium uppercase tracking-[.14em] text-base-content/50">{card.label}</p>
+                    <p className={`mt-0.5 text-2xl font-semibold tabular-nums ${card.color}`}>
                       <Counter value={card.count} />
                     </p>
-                  </div>
-                  <div className="p-3 rounded-full bg-base-200/60 group-hover:bg-primary/10 group-hover:scale-110 transition-all">
-                    <card.icon className={`w-6 h-6 ${card.color}`} />
                   </div>
                 </div>
               </Link>
@@ -231,129 +235,152 @@ export default function AdminDashboardHome() {
         <DashboardAnalytics />
       </Suspense>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
-          <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
-            <ActivityIcon className="w-5 h-5 text-base-content/50" /> Activity Feed
-          </h3>
-          <div className="space-y-6">
-            {stats?.recentUsers && stats.recentUsers.length > 0 && (
-              <div>
-                <p className="text-xs uppercase tracking-wider text-base-content/50 mb-3">New Users</p>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {stats.recentUsers.map((u) => (
-                    <div key={u.id} className="avatar placeholder" title={u.email}>
-                      <div className="w-10 h-10 rounded-full bg-neutral text-neutral-content">
-                        {u.picture ? <img src={u.picture} alt="" /> : (u.fullName?.charAt(0) || u.email.charAt(0).toUpperCase())}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <section className="overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-sm">
+          <div className="flex items-center justify-between border-b border-base-content/5 px-5 py-4">
+            <div>
+              <h3 className="flex items-center gap-2 font-semibold text-base-content">
+                <ActivityIcon className="size-4 text-primary" /> Recent activity
+              </h3>
+              <p className="mt-0.5 text-xs text-base-content/45">Latest updates across your workspace</p>
+            </div>
+            <span className="badge badge-ghost badge-sm">Latest</span>
+          </div>
+          <div className="grid sm:grid-cols-2">
+            <div className="border-b border-base-content/5 p-4 sm:border-b-0 sm:border-r">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-base-content/45">New users</p>
+              </div>
+              <ul className="divide-y divide-base-content/5">
+                {(activity?.users ?? stats?.recentUsers ?? []).slice(0, 3).map((registeredUser) => (
+                  <li key={registeredUser.id} className="flex min-w-0 items-center gap-2.5 py-2.5">
+                    <div className="avatar placeholder">
+                      <div className="size-8 rounded-full bg-neutral text-xs text-neutral-content">
+                        {registeredUser.picture
+                          ? <img src={registeredUser.picture} alt="" />
+                          : (registeredUser.fullName?.charAt(0) || registeredUser.email.charAt(0).toUpperCase())}
                       </div>
                     </div>
-                  ))}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium">{registeredUser.fullName || registeredUser.email}</p>
+                      <p className="truncate text-[10px] text-base-content/45">{registeredUser.email}</p>
+                    </div>
+                    <time className="shrink-0 text-[10px] text-base-content/40">
+                      {new Date(registeredUser.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </time>
+                  </li>
+                ))}
+                {!activity?.users?.length && !stats?.recentUsers?.length && (
+                  <li className="py-6 text-center text-xs text-base-content/45">No recent registrations.</li>
+                )}
+              </ul>
+            </div>
+            <div className="p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-base-content/45">Project updates</p>
+                <Link to="/dashboard/projects" className="text-[11px] font-medium text-primary hover:underline">View all</Link>
+              </div>
+              <ul className="divide-y divide-base-content/5">
+                {(activity?.projects ?? []).slice(0, 3).map((project) => (
+                  <li key={project.id} className="flex min-w-0 items-center gap-2.5 py-2.5">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                      <FolderKanban className="size-4" />
+                    </span>
+                    <p className="min-w-0 flex-1 truncate text-xs font-medium">{project.title}</p>
+                    <time className="shrink-0 text-[10px] text-base-content/40">
+                      {new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </time>
+                  </li>
+                ))}
+                {!activity?.projects?.length && (
+                  <li className="py-6 text-center text-xs text-base-content/45">No project updates.</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-base-content/10 bg-base-100 p-4 shadow-sm">
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-base-content">
+            <ArrowRight className="w-5 h-5 text-base-content/50" /> Quick Links
+          </h3>
+          <div className="grid grid-cols-2 gap-1">
+            {[
+              { to: '/dashboard/skills', icon: Wrench, label: 'Add New Skill' },
+              { to: '/dashboard/projects', icon: FolderKanban, label: 'Add New Project' },
+              { to: '/dashboard/certifications', icon: Award, label: 'Add New Certification' },
+              { to: '/dashboard/education', icon: GraduationCap, label: 'Add Education' },
+              { to: '/dashboard/experience', icon: Briefcase, label: 'Add Experience' },
+            ].map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="btn btn-ghost btn-sm min-w-0 justify-start gap-2 px-2 text-xs hover:bg-primary/5"
+              >
+                <link.icon className="size-4 shrink-0" /> <span className="truncate">{link.label.replace('Add New ', '')}</span>
+              </Link>
+            ))}
+            <button onClick={() => setShowQuickAdd(true)} className="btn btn-ghost btn-sm min-w-0 justify-start gap-2 px-2 text-xs hover:bg-primary/5">
+              <Plus className="size-4 shrink-0" /> <span className="truncate">Quick Add</span>
+            </button>
+            <button onClick={handleExportAll} className="btn btn-ghost btn-sm min-w-0 justify-start gap-2 px-2 text-xs hover:bg-primary/5">
+              <Download className="size-4 shrink-0" /> <span className="truncate">Export All</span>
+            </button>
+          </div>
+        </section>
+
+        <KeepAliveAdminCard />
+
+        <section className="rounded-2xl border border-base-content/10 bg-base-100 p-4 shadow-sm">
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-base-content">
+            <ShieldCheck className="size-4 text-success" /> System status
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.14em] text-base-content/45">
+                <Workflow className="size-3.5 text-primary" /> Pipeline
+              </h4>
+              <div className="space-y-2">
+                {Object.keys(pipelineStatus).length === 0 ? (
+                  <p className="text-xs text-base-content/40">No pipeline runs recorded yet.</p>
+                ) : (
+                  Object.entries(pipelineStatus).map(([script, info]) => (
+                    <div key={script} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="truncate font-medium">{script}</span>
+                      <span className={`badge badge-sm ${info.status === 'success' ? 'badge-success' : 'badge-error'}`}>
+                        {info.status}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.14em] text-base-content/45">
+                <ActivityIcon className="size-3.5 text-success" /> Services
+              </h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2"><Server className="size-3.5" /> API Server</span>
+                  <span className="badge badge-success badge-sm gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Operational
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2"><Zap className="size-3.5" /> Automation</span>
+                  <span className="badge badge-success badge-sm gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Ready
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2"><AlertTriangle className="size-3.5" /> Pending alerts</span>
+                  <span className="badge badge-ghost badge-sm">0</span>
                 </div>
               </div>
-            )}
-            {activity?.projects && activity.projects.length > 0 && (
-              <div>
-                <p className="text-xs uppercase tracking-wider text-base-content/50 mb-3">Recent Projects</p>
-                <ul className="space-y-3">
-                  {activity.projects.map((p) => (
-                    <li key={p.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-base-200/50 transition-colors">
-                      <span className="truncate flex items-center gap-2">
-                        <FolderKanban className="w-4 h-4 text-primary shrink-0" />
-                        {p.title}
-                      </span>
-                      <span className="text-xs text-base-content/40 shrink-0">
-                        {new Date(p.updatedAt).toLocaleDateString()}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {(!stats?.recentUsers?.length && !activity?.projects?.length) && (
-              <div className="text-center text-base-content/40 py-6">
-                <Clock className="w-10 h-10 mx-auto mb-2" />
-                <p className="text-sm">No activity yet.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <KeepAliveAdminCard />
-
-          <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
-            <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
-              <ArrowRight className="w-5 h-5 text-base-content/50" /> Quick Links
-            </h3>
-            <div className="space-y-2">
-              {[
-                { to: '/dashboard/skills', icon: Wrench, label: 'Add New Skill' },
-                { to: '/dashboard/projects', icon: FolderKanban, label: 'Add New Project' },
-                { to: '/dashboard/certifications', icon: Award, label: 'Add New Certification' },
-                { to: '/dashboard/education', icon: GraduationCap, label: 'Add Education' },
-                { to: '/dashboard/experience', icon: Briefcase, label: 'Add Experience' },
-              ].map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className="btn btn-ghost btn-sm w-full justify-start gap-2 hover:bg-primary/5"
-                >
-                  <link.icon className="w-4 h-4" /> {link.label}
-                </Link>
-              ))}
-              <button onClick={() => setShowQuickAdd(true)} className="btn btn-ghost btn-sm w-full justify-start gap-2 hover:bg-primary/5">
-                <Plus className="w-4 h-4" /> Quick Add
-              </button>
-              <button onClick={handleExportAll} className="btn btn-ghost btn-sm w-full justify-start gap-2 hover:bg-primary/5">
-                <Download className="w-4 h-4" /> Export CV Seed & Users
-              </button>
             </div>
           </div>
-
-          <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
-            <h4 className="text-sm font-semibold text-base-content/70 flex items-center gap-2 mb-4">
-              <Workflow className="w-4 h-4 text-primary" /> Pipeline Status
-            </h4>
-            <div className="space-y-3">
-              {Object.keys(pipelineStatus).length === 0 ? (
-                <p className="text-sm text-base-content/40">No pipeline runs recorded yet.</p>
-              ) : (
-                Object.entries(pipelineStatus).map(([script, info]) => (
-                  <div key={script} className="flex items-center justify-between text-sm">
-                    <span className="font-medium truncate">{script}</span>
-                    <span className={`badge badge-sm ${info.status === 'success' ? 'badge-success' : 'badge-error'}`}>
-                      {info.status}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
-            <h4 className="text-sm font-semibold text-base-content/70 flex items-center gap-2 mb-4">
-              <ShieldCheck className="w-4 h-4 text-success" /> System Health
-            </h4>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><Server className="w-4 h-4" /> API Server</span>
-                <span className="badge badge-success badge-sm gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Operational
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><Zap className="w-4 h-4" /> Automation Scripts</span>
-                <span className="badge badge-success badge-sm gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Ready
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Pending Alerts</span>
-                <span className="badge badge-ghost badge-sm">0</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
 
       {showQuickAdd && (

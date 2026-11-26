@@ -13,7 +13,6 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import api from "../../lib/api";
 import { createLogger } from "../../lib/logger";
 import { formatCategoryLabel } from "../../common/utils/category";
-import localProjectsData from "./localProjects.json";
 
 const logger = createLogger("ProjectsPage");
 
@@ -26,7 +25,7 @@ interface Project {
   liveUrl?: string | null;
   githubUrl?: string | null;
   imageUrl?: string | null;
-  isLocal?: boolean;
+  isLocal: boolean;
   link?: string;
 }
 
@@ -96,7 +95,7 @@ export default function ProjectsPage() {
   }, []);
 
   const allProjects = useMemo(() => {
-    return [...dbProjects, ...localProjectsData] as Project[];
+    return dbProjects;
   }, [dbProjects]);
 
   const skillsByCategory = useMemo(() => {
@@ -200,7 +199,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Filter bar with horizontal scrollable pills and multi‑select */}
-      <div className="sticky top-16 z-40 bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-sm">
+      <div className="sticky top-16 z-10 bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <div className="relative w-full md:w-72">

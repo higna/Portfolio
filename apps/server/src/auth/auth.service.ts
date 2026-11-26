@@ -154,9 +154,11 @@ export class AuthService {
     if (!user) {
       user = await this.usersService.findByEmail(profile.email);
       if (user) {
-        // Existing local user – link Google account, keep existing picture
+        // Link Google without replacing a profile image the user already chose.
         user.googleId = profile.googleId;
         if (!user.fullName) user.fullName = profile.fullName;
+        if (!user.picture && profile.picture) user.picture = profile.picture;
+        user.authProvider = AuthProvider.GOOGLE;
         await this.usersService.update(user.id, user);
       } else {
         // New Google user – store Google picture URL directly
@@ -170,10 +172,12 @@ export class AuthService {
         });
       }
     } else {
-      // Existing Google user – optionally update name only
-      if (!user.fullName) {
-        user.fullName = profile.fullName;
-        await this.usersService.update(user.id, { fullName: profile.fullName });
+      // Fill missing Google profile details without replacing user edits.
+      const updates: { fullName?: string; picture?: string } = {};
+      if (!user.fullName) updates.fullName = profile.fullName;
+      if (!user.picture && profile.picture) updates.picture = profile.picture;
+      if (Object.keys(updates).length > 0) {
+        await this.usersService.update(user.id, updates);
       }
     }
 

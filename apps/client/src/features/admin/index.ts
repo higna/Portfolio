@@ -8,6 +8,7 @@ export { default as AdminDataDownload } from './AdminDataDownload';
 export { default as AdminCertifications } from './AdminCertifications';
 export { default as AdminEducation } from './AdminEducation';
 export { default as AdminExperience } from './AdminExperience';
+export { default as AdminCvData } from './AdminCvData';
 export { default as AdminCvTailor } from './AdminCvTailor';
 export { default as CampaignCreator } from './CampaignCreator';
 export { default as CampaignList } from './CampaignList';

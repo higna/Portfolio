@@ -4,6 +4,80 @@ import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Download, User, Camera, Loader2 } from 'lucide-react';
 
+const DESIGN_SIZE = 800;
+
+function loadImage(src: string, crossOrigin = false): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    if (crossOrigin) image.crossOrigin = 'anonymous';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Could not load a campaign image'));
+    image.src = src;
+  });
+}
+
+async function renderCampaignCanvas(
+  canvas: HTMLCanvasElement,
+  template: any,
+  name: string,
+  photoUrl: string | null,
+  isCurrent: () => boolean,
+): Promise<boolean> {
+  const [flyer, photo] = await Promise.all([
+    loadImage(template.flyerUrl, true),
+    photoUrl ? loadImage(photoUrl) : Promise.resolve(null),
+  ]);
+  if (!isCurrent()) return false;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not prepare the campaign preview');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.scale(canvas.width / DESIGN_SIZE, canvas.height / DESIGN_SIZE);
+  ctx.drawImage(flyer, 0, 0, DESIGN_SIZE, DESIGN_SIZE);
+
+  const { x, y, width, height } = template.photoBox;
+  if (photo) {
+    const cropScale = Math.max(width / photo.naturalWidth, height / photo.naturalHeight);
+    const sourceWidth = width / cropScale;
+    const sourceHeight = height / cropScale;
+    const sourceX = (photo.naturalWidth - sourceWidth) / 2;
+    const sourceY = (photo.naturalHeight - sourceHeight) / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, width, height);
+    ctx.clip();
+    ctx.drawImage(
+      photo,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      x,
+      y,
+      width,
+      height,
+    );
+    ctx.restore();
+  } else {
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(x, y, width, height);
+    ctx.setLineDash([]);
+  }
+
+  const { fontSize, fontFamily, color, align, x: nameX, y: nameY } = template.nameConfig;
+  ctx.font = `700 ${fontSize}px "${fontFamily}", sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align as CanvasTextAlign;
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 6;
+  ctx.fillText(name.trim() || 'Your Name', nameX, nameY);
+  ctx.restore();
+  return true;
+}
+
 export default function CampaignFill() {
   const { id } = useParams<{ id: string }>();
   const [template, setTemplate] = useState<any>(null);
@@ -13,6 +87,7 @@ export default function CampaignFill() {
   const [downloading, setDownloading] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const renderVersionRef = useRef(0);
 
   useEffect(() => {
     api.get(`/campaign/template/${id}`)
@@ -29,86 +104,72 @@ export default function CampaignFill() {
   // Live preview – redraw canvas whenever name/photo/template changes
   useEffect(() => {
     if (!template) return;
-    drawPreview();
+    const version = ++renderVersionRef.current;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    void renderCampaignCanvas(canvas, template, name, photoUrl, () => (
+      version === renderVersionRef.current
+    )).catch(() => {
+      if (version !== renderVersionRef.current) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#1f2937';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Preview could not be loaded', canvas.width / 2, canvas.height / 2);
+    });
   }, [template, photoUrl, name]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Choose an image file');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = ev => setPhotoUrl(ev.target?.result as string);
+    reader.onerror = () => toast.error('Could not read that photo');
     reader.readAsDataURL(file);
   };
 
-  const drawPreview = () => {
+  const handleDownload = async () => {
     const canvas = canvasRef.current;
     if (!canvas || !template) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const flyer = new Image();
-    flyer.crossOrigin = 'anonymous';
-    flyer.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(flyer, 0, 0, canvas.width, canvas.height);
-
-      if (photoUrl) {
-        const photo = new Image();
-        photo.onload = () => {
-          // Draw the photo inside the photo box (cover fill)
-          const { x, y, width, height } = template.photoBox;
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(x, y, width, height);
-          ctx.clip();
-          ctx.drawImage(photo, x, y, width, height);
-          ctx.restore();
-
-          drawNameText(ctx);
-        };
-        photo.src = photoUrl;
-      } else {
-        // Draw placeholder for photo box
-        ctx.strokeStyle = '#facc15';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([6, 4]);
-        ctx.strokeRect(
-          template.photoBox.x,
-          template.photoBox.y,
-          template.photoBox.width,
-          template.photoBox.height
-        );
-        ctx.setLineDash([]);
-        drawNameText(ctx);
-      }
-    };
-    flyer.src = template.flyerUrl;
-  };
-
-  const drawNameText = (ctx: CanvasRenderingContext2D) => {
-    const { fontSize, fontFamily, color, align, x, y } = template.nameConfig;
-    ctx.font = `700 ${fontSize}px "${fontFamily}", sans-serif`;
-    ctx.fillStyle = color;
-    ctx.textAlign = align as CanvasTextAlign;
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur = 6;
-    ctx.fillText(name.trim() || 'Your Name', x, y);
-    ctx.shadowBlur = 0;
-  };
-
-  const handleDownload = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
     setDownloading(true);
-    // Small delay to ensure canvas is fully rendered
-    setTimeout(() => {
+    const version = ++renderVersionRef.current;
+    try {
+      const rendered = await renderCampaignCanvas(
+        canvas,
+        template,
+        name,
+        photoUrl,
+        () => version === renderVersionRef.current,
+      );
+      if (!rendered) throw new Error('The preview changed. Try downloading again.');
       const link = document.createElement('a');
       link.download = `${template.title.replace(/\s+/g, '-')}-campaign-dp.png`;
-      link.href = canvas.toDataURL('image/png');
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => {
+          if (result) resolve(result);
+          else reject(new Error('Could not create the campaign image'));
+        }, 'image/png');
+      });
+      const url = URL.createObjectURL(blob);
+      link.href = url;
       link.click();
-      setDownloading(false);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       toast.success('Image downloaded!');
-    }, 100);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Download failed');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (loading) {
@@ -165,6 +226,7 @@ export default function CampaignFill() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your full name"
                 className="input input-bordered w-full"
+                disabled={downloading}
               />
             </div>
 
@@ -175,7 +237,7 @@ export default function CampaignFill() {
                 </span>
               </label>
               <div
-                onClick={() => photoInputRef.current?.click()}
+                onClick={() => !downloading && photoInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
                   photoUrl
                     ? 'border-primary/50 bg-primary/5'
@@ -203,6 +265,7 @@ export default function CampaignFill() {
                   accept="image/*"
                   onChange={handlePhotoUpload}
                   className="hidden"
+                  disabled={downloading}
                 />
               </div>
             </div>

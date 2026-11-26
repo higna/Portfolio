@@ -9,6 +9,7 @@ interface ConversationListProps {
   onDelete: (id: string, e: React.MouseEvent) => void;
   onRename: (id: string, newTitle: string, e?: React.MouseEvent) => void;
   emptyLabel?: string;
+  tone?: "default" | "inverse";
 }
 
 function groupByDate(convs: ChatConversation[]) {
@@ -47,6 +48,7 @@ export default function ConversationList({
   onDelete,
   onRename,
   emptyLabel = "No conversations yet",
+  tone = "default",
 }: ConversationListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
@@ -55,7 +57,7 @@ export default function ConversationList({
 
   if (conversations.length === 0) {
     return (
-      <div className="text-center text-base-content/40 py-10">
+      <div className={`py-10 text-center ${tone === "inverse" ? "text-neutral-content/45" : "text-base-content/40"}`}>
         <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-50" />
         <p className="text-sm">{emptyLabel}</p>
       </div>
@@ -94,18 +96,21 @@ export default function ConversationList({
     <div className="space-y-3">
       {groups.map((group) => (
         <div key={group.label}>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-base-content/40 px-3 mt-5 mb-1.5">
+          <p className={`mt-5 mb-1.5 px-3 text-[9px] font-semibold uppercase tracking-[0.18em] ${tone === "inverse" ? "text-neutral-content/45" : "text-base-content/40"}`}>
             {group.label}
           </p>
           <div className="space-y-1">
             {group.items.map((conv) => (
               <div
                 key={conv.conversationId}
-                onClick={() => onSelect(conv.conversationId)}
-                className={`group flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all border ${
+                className={`group flex items-center justify-between p-2.5 rounded-xl transition-all border ${
                   activeConvId === conv.conversationId
-                    ? "bg-primary/10 border-primary/30 shadow-[0_0_12px_rgba(212,175,55,0.15)]"
-                    : "border-transparent hover:bg-base-200/70 text-base-content/80"
+                    ? tone === "inverse"
+                      ? "border-primary/30 bg-primary/10 text-neutral-content"
+                      : "bg-primary/10 border-primary/30 shadow-sm shadow-primary/10"
+                    : tone === "inverse"
+                      ? "border-transparent text-neutral-content/75 hover:bg-neutral-content/10 hover:text-neutral-content"
+                      : "border-transparent hover:bg-base-200/70 text-base-content/80"
                 }`}
               >
                 <div className="flex-1 min-w-0">
@@ -141,15 +146,22 @@ export default function ConversationList({
                       </button>
                     </div>
                   ) : (
-                    <p
+                    <button
+                      type="button"
+                      onClick={() => onSelect(conv.conversationId)}
+                      aria-current={
+                        activeConvId === conv.conversationId ? "true" : undefined
+                      }
                       className={`truncate text-sm ${
                         activeConvId === conv.conversationId
-                          ? "font-semibold text-primary"
+                          ? tone === "inverse"
+                            ? "font-semibold text-primary"
+                            : "font-semibold text-primary"
                           : "font-medium"
-                      }`}
+                      } w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded`}
                     >
-                      {conv.preview || "Untitled"}
-                    </p>
+                      <span className="block truncate">{conv.preview || "Untitled"}</span>
+                    </button>
                   )}
                 </div>
                 {editingId !== conv.conversationId && (

@@ -51,6 +51,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - chat_data:/repo/apps/server/src/chat/data
     ports:
       - "127.0.0.1:${BACKEND_HOST_PORT:-2500}:2500"
     healthcheck:
@@ -82,3 +84,5 @@ volumes:
     name: portfolio_pgdata
   redis_data:
     name: portfolio_redisdata
+  chat_data:
+    name: portfolio_chatdata

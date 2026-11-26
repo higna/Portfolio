@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Award } from 'lucide-react';
+import { Pencil, Trash2, Award, Plus } from 'lucide-react';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { createLogger } from '../../lib/logger';
+import { useDashboardBannerAction } from '../../common/components/DashboardBannerAction';
 
 const logger = createLogger('AdminCertifications');
 
@@ -94,6 +95,8 @@ export default function AdminCertifications() {
     return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   };
 
+  useDashboardBannerAction('Add certification', handleAddNew);
+
   return (
     <div className="relative max-w-screen-2xl w-full space-y-6">
       {/* Subtle dot pattern background */}
@@ -104,11 +107,10 @@ export default function AdminCertifications() {
         }}
       />
 
-      <div className="flex items-center justify-end">
-        <button onClick={handleAddNew} className="btn btn-primary btn-sm gap-2 shadow-sm hover:shadow-md transition-shadow">
-          <Plus className="w-4 h-4" /> Add New
-        </button>
-      </div>
+      <p className="text-sm text-base-content/55">
+        Certifications are ordered by date, newest first. The position number
+        updates automatically when a date changes.
+      </p>
 
       {/* Form */}
       {showForm && (
@@ -146,6 +148,7 @@ export default function AdminCertifications() {
                   value={form.date}
                   onChange={(e) => setForm({ ...form, date: e.target.value })}
                   className="input input-bordered w-full"
+                  required
                 />
               </div>
               <div className="form-control">
@@ -181,6 +184,7 @@ export default function AdminCertifications() {
           <table className="table w-full">
             <thead>
               <tr className="bg-base-200/50">
+                <th className="w-20">Order</th>
                 <th>Certification</th>
                 <th>Issuer</th>
                 <th>Date</th>
@@ -190,7 +194,7 @@ export default function AdminCertifications() {
             <tbody>
               {certifications.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12">
+                  <td colSpan={5} className="text-center py-12">
                     <div className="flex flex-col items-center gap-3 text-base-content/40">
                       <Award className="w-10 h-10" />
                       <p className="text-sm">No certifications yet</p>
@@ -201,8 +205,22 @@ export default function AdminCertifications() {
                   </td>
                 </tr>
               ) : (
-                certifications.map((cert, index) => (
+                [...certifications]
+                  .sort((a, b) => {
+                    const dateOrder = b.date.localeCompare(a.date);
+                    return dateOrder || a.order - b.order;
+                  })
+                  .map((cert, index) => (
                   <tr key={cert.id} className="hover:bg-base-200/50 transition-colors animate-fade-in" style={{ animationDelay: `${index * 60}ms` }}>
+                    <td>
+                      <span
+                        className="inline-flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
+                        aria-label={`Position ${index + 1}`}
+                        title={`Position ${index + 1}, ordered by date`}
+                      >
+                        {index + 1}
+                      </span>
+                    </td>
                     <td>
                       <div className="flex items-center gap-2">
                         <Award className="w-4 h-4 text-primary shrink-0" />
@@ -229,7 +247,7 @@ export default function AdminCertifications() {
                       </div>
                     </td>
                   </tr>
-                ))
+                  ))
               )}
             </tbody>
           </table>

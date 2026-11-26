@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Pencil, Trash2, Wrench } from 'lucide-react';
+import { Pencil, Trash2, Wrench, Plus } from 'lucide-react';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { createLogger } from '../../lib/logger';
+import { useDashboardBannerAction } from '../../common/components/DashboardBannerAction';
 
 const logger = createLogger('AdminSkills');
 
@@ -111,6 +112,8 @@ export default function AdminSkills() {
     return 'badge-ghost';
   };
 
+  useDashboardBannerAction('Add skill', handleAddNew);
+
   return (
     <div className="relative max-w-screen-2xl w-full space-y-6">
       {/* Subtle dot pattern background */}
@@ -121,12 +124,6 @@ export default function AdminSkills() {
           backgroundSize: '24px 24px',
         }}
       />
-
-      <div className="flex items-center justify-end">
-        <button onClick={handleAddNew} className="btn btn-primary btn-sm gap-2 shadow-sm hover:shadow-md transition-shadow">
-          <Plus className="w-4 h-4" /> Add New
-        </button>
-      </div>
 
       {/* Form */}
       {showForm && (

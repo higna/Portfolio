@@ -43,20 +43,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    api.get('/users/me')
-      .then((res) => {
+    let active = true;
+    let retryTimer: number | undefined;
+
+    const restoreSession = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        if (active) setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await api.get('/users/me');
+        if (!active) return;
         setUser(res.data);
         logger.log('Session restored');
-      })
-      .catch(() => {
-        localStorage.removeItem('token');
-      })
-      .finally(() => setLoading(false));
+        setLoading(false);
+      } catch (error) {
+        if (!active) return;
+        const status = (error as { response?: { status?: number } })?.response?.status;
+        if (status === 401) {
+          localStorage.removeItem('token');
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        // Keep the token during network/server outages and restore the session
+        // once the API is reachable again.
+        retryTimer = window.setTimeout(() => void restoreSession(), 3000);
+      }
+    };
+
+    void restoreSession();
+    return () => {
+      active = false;
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+    };
   }, []);
 
   const login = async (email: string, password: string, captchaToken?: string) => {

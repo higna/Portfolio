@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, ExternalLink, FolderGit2 } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, FolderGit2, Plus } from "lucide-react";
 import { FiGithub } from "react-icons/fi";
 import api from "../../lib/api";
 import toast from "react-hot-toast";
 import { createLogger } from "../../lib/logger";
+import { useDashboardBannerAction } from "../../common/components/DashboardBannerAction";
 
 const logger = createLogger("AdminProjects");
 
@@ -18,6 +19,8 @@ interface Project {
   imageUrl: string | null;
   isFeatured: boolean;
   order: number;
+  isLocal: boolean;
+  link: string | null;
 }
 
 export default function AdminProjects() {
@@ -35,6 +38,8 @@ export default function AdminProjects() {
     imageUrl: "",
     isFeatured: false,
     order: 0,
+    isLocal: false,
+    link: "",
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -68,6 +73,8 @@ export default function AdminProjects() {
       imageUrl: "",
       isFeatured: false,
       order: 0,
+      isLocal: false,
+      link: "",
     });
     setImagePreview(null);
   };
@@ -89,6 +96,8 @@ export default function AdminProjects() {
       imageUrl: project.imageUrl || "",
       isFeatured: project.isFeatured,
       order: project.order,
+      isLocal: project.isLocal,
+      link: project.link || "",
     });
     setImagePreview(project.imageUrl || null);
     setShowForm(true);
@@ -131,6 +140,7 @@ export default function AdminProjects() {
     try {
       const payload = {
         ...form,
+        link: form.isLocal ? form.link.trim() : null,
         techStack: form.techStack
           .split(",")
           .map((s) => s.trim())
@@ -164,6 +174,8 @@ export default function AdminProjects() {
     }
   };
 
+  useDashboardBannerAction('Add project', handleAddNew);
+
   return (
     <div className="relative max-w-screen-2xl w-full space-y-6">
       {/* Subtle dot pattern background */}
@@ -175,15 +187,6 @@ export default function AdminProjects() {
           backgroundSize: "24px 24px",
         }}
       />
-
-      <div className="flex items-center justify-end">
-        <button
-          onClick={handleAddNew}
-          className="btn btn-primary btn-sm gap-2 shadow-sm hover:shadow-md transition-shadow"
-        >
-          <Plus className="w-4 h-4" /> Add New
-        </button>
-      </div>
 
       {/* Form */}
       {showForm && (
@@ -285,6 +288,20 @@ export default function AdminProjects() {
               </div>
               <div className="form-control">
                 <label className="label">
+                  <span className="label-text font-medium">Internal tool route</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.link}
+                  onChange={(e) => setForm({ ...form, link: e.target.value })}
+                  className="input input-bordered w-full"
+                  placeholder="/pdf/merge"
+                  disabled={!form.isLocal}
+                  required={form.isLocal}
+                />
+              </div>
+              <div className="form-control">
+                <label className="label">
                   <span className="label-text font-medium">Order</span>
                 </label>
                 <input
@@ -305,6 +322,19 @@ export default function AdminProjects() {
                     checked={form.isFeatured}
                     onChange={(e) =>
                       setForm({ ...form, isFeatured: e.target.checked })
+                    }
+                  />
+                </label>
+              </div>
+              <div className="form-control">
+                <label className="label cursor-pointer justify-start gap-4">
+                  <span className="label-text font-medium">Local tool</span>
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-primary"
+                    checked={form.isLocal}
+                    onChange={(e) =>
+                      setForm({ ...form, isLocal: e.target.checked })
                     }
                   />
                 </label>
@@ -442,6 +472,9 @@ export default function AdminProjects() {
                           <div className="text-xs text-base-content/50">
                             {project.slug}
                           </div>
+                          {project.isLocal && (
+                            <span className="badge badge-warning badge-xs mt-1">Local tool</span>
+                          )}
                         </div>
                       </div>
                     </td>

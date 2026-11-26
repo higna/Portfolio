@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Download, Trash2, FileText, UploadCloud, X } from 'lucide-react';
+import { Download, Trash2, FileText, UploadCloud, X, Layers, ShieldCheck } from 'lucide-react';
 import api from '../../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -48,6 +48,8 @@ export default function PdfMerger() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const totalSize = files.reduce((total, file) => total + file.size, 0);
+
   const handleMerge = async () => {
     if (!files.length) {
       toast.error('Please select at least one PDF file');
@@ -83,12 +85,31 @@ export default function PdfMerger() {
   };
 
   return (
-    <div>
-      <div className="max-w-screen-2xl mx-auto">
-        <div className="max-w-lg mx-auto">
-          <div className="card bg-base-100 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary to-accent" />
-            <div className="p-6 space-y-5">
+    <div className="mx-auto w-full max-w-screen-2xl space-y-6">
+      <header className="relative overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] px-6 py-6 text-white shadow-lg sm:px-8 sm:py-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 size-64 rounded-full border border-warning/10" />
+        <div className="relative flex items-start gap-4">
+          <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-warning/10 text-warning">
+            <Layers className="size-6" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[.22em] text-warning">PDF tools</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Merge PDF files</h1>
+            <p className="mt-2 max-w-2xl text-sm text-white/65">
+              Combine multiple documents into one clean PDF and name your finished file.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
+        <section className="relative overflow-hidden rounded-3xl border border-base-content/10 bg-base-100 shadow-sm">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-accent" />
+          <div className="space-y-5 p-5 sm:p-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.14em] text-base-content/45">01 · Add documents</p>
+              <h2 className="mt-1 text-lg font-semibold">Choose PDFs to combine</h2>
+            </div>
               {/* Drop zone */}
               <div
                 onDrop={handleDrop}
@@ -114,7 +135,7 @@ export default function PdfMerger() {
                 />
               </div>
 
-              {/* File list */}
+              {/* Selected files */}
               {files.length > 0 && (
                 <div className="space-y-3 animate-fade-in">
                   <div className="flex items-center justify-between">
@@ -174,9 +195,58 @@ export default function PdfMerger() {
                 )}
                 {merging ? 'Merging…' : `Merge & Download (${files.length})`}
               </button>
-            </div>
           </div>
-        </div>
+        </section>
+
+        <aside className="overflow-hidden rounded-3xl border border-base-content/10 bg-base-100 shadow-sm">
+          <div className="border-b border-base-content/5 px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[.14em] text-base-content/45">02 · Output overview</p>
+            <h2 className="mt-1 font-semibold">Your merge order</h2>
+          </div>
+          <div className="space-y-5 p-5">
+            <div className="rounded-2xl bg-base-200/50 p-4 sm:p-6">
+              <div className="mx-auto max-w-xs rounded-xl border border-base-content/10 bg-base-100 p-4 shadow-sm">
+                <div className="mb-4 flex items-center justify-between border-b border-base-content/10 pb-3">
+                  <span className="flex items-center gap-2 text-xs font-semibold">
+                    <FileText className="size-4 text-primary" /> {fileName.trim() || 'merged'}.pdf
+                  </span>
+                  <span className="badge badge-ghost badge-xs">PDF</span>
+                </div>
+                <div className="space-y-2">
+                  {files.length > 0 ? files.slice(0, 4).map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center gap-2 rounded-lg border border-base-content/5 bg-base-200/40 p-2.5">
+                      <span className="grid size-6 shrink-0 place-items-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">{index + 1}</span>
+                      <span className="min-w-0 flex-1 truncate text-[11px]">{file.name}</span>
+                      <span className="text-[10px] text-base-content/40">{formatSize(file.size)}</span>
+                    </div>
+                  )) : (
+                    <>
+                      <div className="h-10 rounded-lg border border-dashed border-base-content/15 bg-base-200/30" />
+                      <div className="h-10 rounded-lg border border-dashed border-base-content/15 bg-base-200/30" />
+                      <div className="h-10 rounded-lg border border-dashed border-base-content/15 bg-base-200/30" />
+                    </>
+                  )}
+                  {files.length > 4 && (
+                    <p className="pt-1 text-center text-[10px] text-base-content/45">and {files.length - 4} more files</p>
+                  )}
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-base-content/10 pt-3 text-[10px] text-base-content/45">
+                  <span>{files.length} {files.length === 1 ? 'document' : 'documents'}</span>
+                  <span>{formatSize(totalSize)} total</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-success/15 bg-success/5 p-3">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-success" />
+              <p className="text-xs leading-relaxed text-base-content/60">
+                Review the file sequence and output name before starting the merge.
+              </p>
+            </div>
+            <p className="text-center text-[11px] text-base-content/40">
+              {files.length ? 'Files merge from top to bottom.' : 'Add PDFs to see the output order and file details.'}
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   );

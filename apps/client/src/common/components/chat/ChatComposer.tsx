@@ -29,7 +29,7 @@ export default function ChatComposer({
   }, [input]);
 
   return (
-    <div className="relative flex items-end gap-2 bg-base-100/80 backdrop-blur-xl rounded-2xl border border-base-300/50 p-2 pl-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] focus-within:border-primary/70 focus-within:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300">
+    <div className="relative flex items-end gap-2 rounded-[1.4rem] border border-base-300/70 bg-base-100 p-2 pl-4 shadow-xl shadow-base-content/5 transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-lg focus-within:shadow-primary/10">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -42,13 +42,14 @@ export default function ChatComposer({
           }
         }}
         placeholder={placeholder}
-        className="textarea textarea-ghost flex-1 resize-none focus:outline-none text-base-content placeholder:text-base-content/40"
+        aria-label="Message"
+        className="textarea textarea-ghost min-h-11 flex-1 resize-none px-1 py-2 text-sm leading-6 text-base-content focus:outline-none placeholder:text-base-content/40 sm:text-base"
         disabled={loading}
       />
       {loading ? (
         <button
           onClick={onStop}
-          className="btn btn-error btn-circle shadow-[0_0_12px_rgba(239,68,68,0.3)] transition-transform hover:scale-105"
+          className="btn btn-error btn-circle shadow-lg shadow-error/20 transition-transform hover:scale-105"
           aria-label="Stop generation"
         >
           <StopCircle className="w-5 h-5" />
@@ -56,7 +57,7 @@ export default function ChatComposer({
       ) : (
         <button
           onClick={onSend}
-          className="btn btn-primary btn-circle disabled:opacity-40 shadow-[0_0_12px_rgba(212,175,55,0.25)] transition-transform hover:scale-105"
+          className="btn btn-primary btn-circle shadow-lg shadow-primary/20 transition-transform hover:scale-105 disabled:opacity-40"
           disabled={!input.trim()}
           aria-label="Send message"
         >

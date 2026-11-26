@@ -11,6 +11,7 @@ import {
   Hash,
   Eye,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import bwipjs from 'bwip-js';
@@ -324,6 +325,22 @@ export default function BarcodeGenerator() {
   return (
     <div>
       <div className="max-w-screen-2xl mx-auto">
+        <header className="relative mb-6 overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] px-6 py-6 text-white shadow-lg sm:px-8 sm:py-7">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 size-64 rounded-full border border-warning/10" />
+          <div className="relative flex items-start gap-4">
+            <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-warning/10 text-warning">
+              <Sparkles className="size-6" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.22em] text-warning">Barcode tools</p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">QR &amp; Barcode Generator</h1>
+              <p className="mt-2 max-w-2xl text-sm text-white/65">
+                Create a single code or generate a batch, then preview and export your results.
+              </p>
+            </div>
+          </div>
+        </header>
+
         {/* Mode tabs */}
         <div className="tabs tabs-boxed mb-6">
           <button

@@ -1,4 +1,9 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { spawn } from 'child_process';
 import { join } from 'path';
@@ -24,11 +29,90 @@ export interface ExportOptions {
   zipFileName?: string;
 }
 
+export interface ImportResult {
+  imported: number;
+  failed: number;
+  errors: Array<{ row: number; message: string }>;
+}
+
 @Injectable()
 export class OnaService {
   private readonly logger = new Logger(OnaService.name);
 
   constructor(private readonly configService: ConfigService) { }
+
+  async importXlsxSubmissions(
+    formId: number,
+    file: Buffer,
+  ): Promise<ImportResult> {
+    const apiKey = this.configService.get<string>('ONA_API_KEY');
+    if (!apiKey) {
+      throw new InternalServerErrorException('ONA_API_KEY not configured');
+    }
+
+    const baseUrl = this.configService.get<string>(
+      'ONA_BASE_URL',
+      'https://api.ona.io/api/v1',
+    );
+    const scriptPath = join(
+      process.cwd(),
+      'worker',
+      'scripts',
+      'import_ona_xlsx.py',
+    );
+
+    return new Promise((resolve, reject) => {
+      const importer = spawn(getPythonExecutable(), [
+        scriptPath,
+        apiKey,
+        baseUrl,
+        String(formId),
+      ]);
+      let output = '';
+      let errorOutput = '';
+
+      importer.stdout.on('data', (data: Buffer) => {
+        output += data.toString();
+      });
+      importer.stderr.on('data', (data: Buffer) => {
+        errorOutput += data.toString();
+      });
+      importer.on('error', (error) => {
+        reject(
+          new InternalServerErrorException(
+            `Failed to start XLSX importer: ${error.message}`,
+          ),
+        );
+      });
+      importer.on('close', (code) => {
+        let result: ImportResult | { error: string };
+        try {
+          result = JSON.parse(output);
+        } catch {
+          this.logger.error(`XLSX import returned invalid output: ${errorOutput}`);
+          reject(new InternalServerErrorException('XLSX import failed'));
+          return;
+        }
+
+        if ('error' in result) {
+          reject(new BadRequestException(result.error));
+          return;
+        }
+        if (code !== 0) {
+          this.logger.error(`XLSX import failed: ${errorOutput}`);
+          reject(new InternalServerErrorException('XLSX import failed'));
+          return;
+        }
+
+        resolve(result);
+      });
+
+      importer.stdin.on('error', (error) => {
+        this.logger.error(`Failed to send XLSX to importer: ${error.message}`);
+      });
+      importer.stdin.end(file);
+    });
+  }
 
   /* ------------------------------------------------------------------ */
   /*  List forms via the Python script                                   */
@@ -158,6 +242,7 @@ export class OnaService {
     nameMap?: Map<number, string>,
   ): Promise<{ zipBuffer: Buffer; zipFileName: string }> {
     const zip = new AdmZip();
+    const failedForms: number[] = [];
 
     for (const formId of formIds) {
       try {
@@ -167,7 +252,14 @@ export class OnaService {
         this.logger.log(`Added form ${baseName} to ZIP`);
       } catch (err: any) {
         this.logger.error(`Failed to add form ${formId} to ZIP: ${err.message}`);
+        failedForms.push(formId);
       }
+    }
+
+    if (failedForms.length > 0) {
+      throw new InternalServerErrorException(
+        `Could not export form${failedForms.length === 1 ? '' : 's'}: ${failedForms.join(', ')}`,
+      );
     }
 
     const zipFileName = options.zipFileName

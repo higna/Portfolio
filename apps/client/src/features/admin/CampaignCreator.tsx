@@ -90,7 +90,10 @@ export default function CampaignCreator() {
   useEffect(() => { drawPreview(); }, [drawPreview]);
 
   const handleFlyerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    // Clearing the value lets the user retry the same file after an upload failure.
+    input.value = "";
     if (!file) return;
     setUploading(true);
     const formData = new FormData();

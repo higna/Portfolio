@@ -1,4 +1,10 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  type ChangeEvent,
+} from "react";
 import {
   Download,
   Database,
@@ -9,12 +15,24 @@ import {
   ArrowUp,
   ArrowDown,
   FileSpreadsheet,
+  Upload,
 } from "lucide-react";
 import api from "../../lib/api";
+import axios from "axios";
 import toast from "react-hot-toast";
 import { createLogger } from "../../lib/logger";
 
 const logger = createLogger("AdminDataDownload");
+
+function getTemplateFileName(input: string): string {
+  const fileName = input
+    .trim()
+    .replace(/\.xlsx$/i, "")
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
+    .replace(/[. ]+$/g, "");
+
+  return fileName ? `${fileName}.xlsx` : "";
+}
 
 interface ONAForm {
   formid: number;
@@ -25,6 +43,12 @@ interface ONAForm {
 }
 
 type SortField = "title" | "id_string" | "formid" | "num_of_submissions";
+
+interface ImportResult {
+  imported: number;
+  failed: number;
+  errors: Array<{ row: number; message: string }>;
+}
 
 interface ExportOptions {
   fileType: string;
@@ -54,6 +78,14 @@ export default function AdminDataDownload() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
+  const [showTemplateNameModal, setShowTemplateNameModal] = useState(false);
+  const templateNameModalRef = useRef<HTMLDialogElement>(null);
+  const [templateForm, setTemplateForm] = useState<ONAForm | null>(null);
+  const [templateFileName, setTemplateFileName] = useState("");
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const uploadFormIdRef = useRef<number | null>(null);
+  const [uploadingFormId, setUploadingFormId] = useState<number | null>(null);
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     fileType: "xlsx",
     removeGroupName: false,
@@ -93,6 +125,14 @@ export default function AdminDataDownload() {
       modalRef.current?.close();
     }
   }, [showModal]);
+
+  useEffect(() => {
+    if (showTemplateNameModal) {
+      templateNameModalRef.current?.showModal();
+    } else {
+      templateNameModalRef.current?.close();
+    }
+  }, [showTemplateNameModal]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -200,6 +240,110 @@ export default function AdminDataDownload() {
     }
   };
 
+  const handleUploadXlsx = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.currentTarget.files?.[0];
+    const formId = uploadFormIdRef.current;
+    event.currentTarget.value = "";
+    if (!file || formId === null) return;
+
+    const payload = new FormData();
+    payload.append("file", file);
+    setUploadingFormId(formId);
+    try {
+      const response = await api.post<ImportResult>(
+        `/ona/forms/${formId}/submissions/import`,
+        payload,
+      );
+      const result = response.data;
+      // Read the count back from ONA so the UI doesn't drift if another
+      // admin submitted data or this upload had already been retried.
+      try {
+        const formsResponse = await api.get<ONAForm[]>("/ona/forms");
+        setForms(formsResponse.data);
+      } catch (refreshError) {
+        // The import has already completed; don't report it as failed just
+        // because the follow-up count refresh could not reach ONA.
+        logger.error(String(refreshError));
+        toast("Submissions were added, but the form count could not be refreshed.");
+      }
+
+      if (result.failed === 0) {
+        toast.success(`Added ${result.imported} submissions to ONA`);
+      } else {
+        const firstError = result.errors[0];
+        toast.error(
+          `Added ${result.imported}; ${result.failed} failed${
+            firstError
+              ? ` (row ${firstError.row}: ${firstError.message})`
+              : ""
+          }`,
+          { duration: 8000 },
+        );
+      }
+    } catch (error) {
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : error instanceof Error
+          ? error.message
+          : undefined;
+      toast.error(message || "Failed to upload XLSX submissions");
+      logger.error(message || "Failed to upload XLSX submissions");
+    } finally {
+      setUploadingFormId(null);
+    }
+  };
+
+  const handleTemplateDownload = async () => {
+    if (!templateForm) return;
+
+    const fileName = getTemplateFileName(templateFileName);
+    if (!fileName) {
+      toast.error("Enter a valid template file name");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in first");
+      return;
+    }
+
+    setDownloadingTemplate(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:2500"}/ona/template/${templateForm.formid}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!response.ok) throw new Error("Download failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Template download started");
+      setShowTemplateNameModal(false);
+      setTemplateForm(null);
+    } catch (error) {
+      toast.error("Failed to download template");
+      logger.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setDownloadingTemplate(false);
+    }
+  };
+
+  const openTemplateNameModal = (form: ONAForm) => {
+    setTemplateForm(form);
+    setTemplateFileName(form.title || form.id_string || `template_${form.formid}`);
+    setShowTemplateNameModal(true);
+  };
+
   const formatNumber = (num: number) => num.toLocaleString();
 
   const SortHeader = ({
@@ -255,6 +399,13 @@ export default function AdminDataDownload() {
 
   return (
     <div className="relative max-w-screen-2xl w-full space-y-6">
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        onChange={handleUploadXlsx}
+        className="hidden"
+      />
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03] -z-10"
         style={{
@@ -404,7 +555,7 @@ export default function AdminDataDownload() {
                         label="Submissions"
                       />
                     </th>
-                    <th className="w-28">Actions</th>
+                    <th className="w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -463,34 +614,29 @@ export default function AdminDataDownload() {
                         </td>
                         <td>
                           <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const token = localStorage.getItem("token");
-                              if (!token) {
-                                toast.error("Please log in first");
-                                return;
-                              }
-                              try {
-                                const res = await fetch(
-                                  `${import.meta.env.VITE_API_URL || "http://localhost:2500"}/ona/template/${form.formid}`,
-                                  { headers: { Authorization: `Bearer ${token}` } },
-                                );
-                                if (!res.ok) throw new Error("Download failed");
-                                const blob = await res.blob();
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = `template_${form.formid}.xlsx`;
-                                document.body.appendChild(a);
-                                a.click();
-                                a.remove();
-                                window.URL.revokeObjectURL(url);
-                              } catch {
-                                toast.error("Failed to download template");
-                              }
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              uploadFormIdRef.current = form.formid;
+                              uploadInputRef.current?.click();
                             }}
+                            disabled={uploadingFormId !== null}
+                            className="btn btn-ghost btn-xs btn-square hover:bg-success/10 hover:text-success transition-colors"
+                            title="Upload completed template as ONA submissions"
+                          >
+                            {uploadingFormId === form.formid ? (
+                              <span className="loading loading-spinner loading-xs" />
+                            ) : (
+                              <Upload className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openTemplateNameModal(form);
+                            }}
+                            disabled={downloadingTemplate}
                             className="btn btn-ghost btn-xs btn-square hover:bg-primary/10 hover:text-primary transition-colors"
-                            title="Download empty template"
+                            title="Choose a name and download the empty template"
                           >
                             <FileSpreadsheet className="w-4 h-4" />
                           </button>
@@ -506,8 +652,10 @@ export default function AdminDataDownload() {
       )}
 
       <div className="text-sm text-base-content/50 flex items-center gap-1">
-        <Download className="w-3.5 h-3.5" />
-        Selected forms will be downloaded with the configured export options.
+        <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
+        Download a form template, add one submission per row starting on row 2,
+        choose from the dropdowns where available, then upload it here (maximum
+        1,000 rows and 10 MB). For multiple choices, enter option values separated by spaces.
       </div>
 
       {/* Export Options Modal */}
@@ -698,6 +846,79 @@ export default function AdminDataDownload() {
         </div>
         <form method="dialog" className="modal-backdrop">
           <button onClick={() => setShowModal(false)}>close</button>
+        </form>
+      </dialog>
+
+      <dialog
+        ref={templateNameModalRef}
+        className="modal"
+        onClose={() => setShowTemplateNameModal(false)}
+      >
+        <form
+          className="modal-box max-w-md p-6 rounded-2xl shadow-2xl relative overflow-hidden"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleTemplateDownload();
+          }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary to-accent" />
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-primary" />
+              Name your template
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowTemplateNameModal(false)}
+              className="btn btn-ghost btn-sm btn-circle"
+              aria-label="Close"
+              disabled={downloadingTemplate}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <label className="form-control">
+            <span className="label-text font-medium mb-2">File name</span>
+            <div className="join w-full">
+              <input
+                type="text"
+                value={templateFileName}
+                onChange={(event) => setTemplateFileName(event.target.value)}
+                className="input input-bordered join-item w-full"
+                placeholder="My form template"
+                autoFocus
+                disabled={downloadingTemplate}
+              />
+              <span className="btn btn-disabled join-item">.xlsx</span>
+            </div>
+          </label>
+
+          <div className="modal-action mt-6">
+            <button
+              type="button"
+              onClick={() => setShowTemplateNameModal(false)}
+              className="btn btn-ghost"
+              disabled={downloadingTemplate}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary gap-2"
+              disabled={downloadingTemplate || !templateFileName.trim()}
+            >
+              {downloadingTemplate ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {downloadingTemplate ? "Preparing..." : "Download"}
+            </button>
+          </div>
+        </form>
+        <form method="dialog" className="modal-backdrop">
+          <button aria-label="Close dialog">close</button>
         </form>
       </dialog>
     </div>

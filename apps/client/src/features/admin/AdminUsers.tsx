@@ -3,6 +3,7 @@ import { Users, Mail, Shield, Calendar} from "lucide-react";
 import api from "../../lib/api";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useDashboardBannerMeta } from "../../common/components/DashboardBannerAction";
 
 interface User {
   id: string;
@@ -19,6 +20,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate(); 
+  useDashboardBannerMeta('Total users', loading ? '…' : users.length.toLocaleString(), Users);
 
   useEffect(() => {
     api
@@ -38,15 +40,6 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-4 py-2 bg-base-200 rounded-lg">
-            <Users className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">{users.length} total</span>
-          </div>
-        </div>
-      </div>
-
       {loading ? (
         <div className="overflow-x-auto rounded-xl border border-base-content/10 bg-base-100 shadow-sm">
           <table className="table w-full">

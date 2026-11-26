@@ -9,7 +9,7 @@ import {
 import Navbar from "./common/components/Navbar";
 import AuthLayout from "./common/components/AuthLayout";
 import DashboardLayout from "./common/components/DashboardLayout";
-import ChatLayout from "./common/components/ChatLayout";
+import ChatAssistantFab from "./common/components/chat/ChatAssistantFab";
 import ProtectedRoute from "./common/components/ProtectedRoute";
 import GuestRoute from "./common/components/GuestRoute";
 import { createLogger } from "./lib/logger";
@@ -18,7 +18,7 @@ const logger = createLogger("Router");
 
 /* Public pages */
 import HomePage from "./features/landing/HomePage";
-import ChatPage from "./features/chat/ChatPage";
+import ChatLauncher from "./features/chat/ChatLauncher";
 
 /* Auth pages */
 import {
@@ -41,6 +41,7 @@ import RequireRole from "./common/components/RequireRole";
 /* Admin Pages */
 import {
   AdminCertifications,
+  AdminCvData,
   AdminCvTailor,
   AdminDataDownload,
   AdminDataPipeline,
@@ -55,7 +56,7 @@ import {
 } from "./features/admin";
 
 import { PdfMerger, ImageToPdf, CampaignFill, ProjectsPage, BarcodeGenerator, BarcodeInterpreter } from "./features/projects";
-import { DashboardChat, DashboardHome, ProfilePage } from "./features/dashboard";
+import { DashboardHome, ProfilePage } from "./features/dashboard";
 
 /* Placeholder public pages */
 function Analytics() {
@@ -99,6 +100,7 @@ export default function AppRouter() {
     <BrowserRouter>
       <ScrollToTop />
       <RouteLogger />
+      <ChatAssistantFab />
       <Routes>
         {/* Auth pages – only for guests */}
         <Route element={<GuestRoute />}>
@@ -115,7 +117,7 @@ export default function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardHome />} />
-            <Route path="/dashboard/chat" element={<DashboardChat />} />
+            <Route path="/dashboard/chat" element={<ChatLauncher destination="/dashboard" />} />
             <Route path="/dashboard/profile" element={<ProfilePage />} />
             <Route path="/dashboard/pdf/merge" element={<PdfMerger />} />
             <Route path="/dashboard/pdf/images-to-pdf" element={<ImageToPdf />} />
@@ -132,6 +134,7 @@ export default function AppRouter() {
               <Route path="/dashboard/certifications" element={<AdminCertifications />} />
               <Route path="/dashboard/education" element={<AdminEducation />} />
               <Route path="/dashboard/experience" element={<AdminExperience />} />
+              <Route path="/dashboard/cv-data" element={<AdminCvData />} />
               <Route path="/dashboard/cv-tailor" element={<AdminCvTailor />} />
               <Route path="/dashboard/skills" element={<AdminSkills />} />
               <Route path="/dashboard/projects" element={<AdminProjects />} />
@@ -156,9 +159,7 @@ export default function AppRouter() {
           <Route path="/barcode-generator" element={<BarcodeGenerator />} />
           <Route path="/barcode-interpreter" element={<BarcodeInterpreter />} />
         </Route>
-        <Route element={<ChatLayout />}>
-          <Route path="/chat" element={<ChatPage />} />
-        </Route>
+        <Route path="/chat" element={<ChatLauncher />} />
 
         {/* 404 catch-all */}
         <Route path="*" element={<NotFound />} />

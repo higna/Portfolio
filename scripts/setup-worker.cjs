@@ -28,7 +28,7 @@ const dependencyCheck = spawnSync(
   environmentPython,
   [
     '-c',
-    "import importlib.util, ssl, sys; modules = 'requests pandas gspread oauth2client gspread_dataframe matplotlib numpy PIL PyPDF2 openpyxl cv2 pyzbar playwright'.split(); sys.exit(any(importlib.util.find_spec(name) is None for name in modules))",
+    "import importlib.util, ssl, sys; modules = 'requests pandas gspread oauth2client gspread_dataframe matplotlib numpy PIL PyPDF2 openpyxl cv2 pyzbar'.split(); sys.exit(any(importlib.util.find_spec(name) is None for name in modules))",
   ],
   { stdio: 'ignore' },
 );
@@ -36,14 +36,14 @@ const dependencyCheck = spawnSync(
 if (dependencyCheck.error) {
   console.error(`Unable to check worker Python environment: ${dependencyCheck.error.message}`);
   run(python, ['-m', 'venv', '--clear', environmentDir]);
-} else if (dependencyCheck.status === 0) {
-  process.exit(0);
 }
 
-run(environmentPython, [
-  '-m',
-  'pip',
-  'install',
-  '-r',
-  path.join(workerDir, 'requirements.txt'),
-]);
+if (dependencyCheck.status !== 0) {
+  run(environmentPython, [
+    '-m',
+    'pip',
+    'install',
+    '-r',
+    path.join(workerDir, 'requirements.txt'),
+  ]);
+}

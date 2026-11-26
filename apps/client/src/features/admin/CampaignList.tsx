@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
 import { Plus, Pencil, Trash2, Copy, LayoutGrid } from 'lucide-react';
+import { useDashboardBannerAction } from '../../common/components/DashboardBannerAction';
 
 interface CampaignTemplate {
   id: string;
@@ -17,6 +18,8 @@ export default function CampaignList() {
   const [templates, setTemplates] = useState<CampaignTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useDashboardBannerAction('Create new', () => navigate('/dashboard/campaign/create'));
 
   useEffect(() => {
     api.get('/campaign/templates')
@@ -52,12 +55,6 @@ export default function CampaignList() {
           backgroundSize: '24px 24px',
         }}
       />
-
-      <div className="flex items-center justify-end">
-        <Link to="/dashboard/campaign/create" className="btn btn-primary gap-2 shadow-sm hover:shadow-md transition-all">
-          <Plus className="w-4 h-4" /> Create New
-        </Link>
-      </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

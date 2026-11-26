@@ -11,6 +11,12 @@ An npm workspace containing a NestJS API (`apps/server`) and a Vite/React client
 The API uses port `2500`, the web client `2000`, PostgreSQL `2555`, and Redis `2525`. PostgreSQL and Redis are bound to loopback by Docker Compose.
 To prepare the Python worker without starting the app, run `npm run setup:worker`.
 
+## Editing CV data
+
+Superadmins can edit the complete portfolio CV document in **Dashboard > Portfolio > CV JSON**. The chatbot reads `apps/server/src/chat/data/cv-data.json` for each new request. Changes from the JSON editor and the profile, experience, education, skills, projects, and certifications admin pages regenerate that file, so additions and edits are available to the next chatbot response. JSON imports are validated and saved to PostgreSQL and the file is refreshed from the saved data. Saving a full document replaces its CV sections; export a backup before importing a full replacement. Docker Compose keeps the chat data directory in the persistent `portfolio_chatdata` volume.
+
+Signed-in users can ask the AI chat for a general CV and download its response as a PDF. Superadmins can use **Dashboard > Portfolio > Tailor CV** to provide a job description, generate a factual role-specific draft from the latest CV data, preview it, and download it using the ATS-friendly, Modern, or Classic PDF style. Tailored drafts are generated on demand and are not saved to the CV data.
+
 ## VPS deployment with Docker Compose
 
 This setup runs the server, static client, PostgreSQL, and Redis on one VPS. A host-level Caddy reverse proxy provides HTTPS and forwards public traffic to the local-only Compose ports.

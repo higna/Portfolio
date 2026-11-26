@@ -280,13 +280,13 @@ export default function UserDashboardHome() {
   }, [usage, tools]);
 
   return (
-    <div className="relative mx-auto w-full max-w-screen-2xl space-y-7">
-      {/* Hero Header */}
-      <header className="relative overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] p-6 text-white shadow-lg sm:p-8">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-20 size-64 rounded-full border border-warning/10" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-1 -top-12 size-48 rounded-full border border-warning/10" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="flex items-center gap-5">
+    <div className="relative mx-auto w-full max-w-screen-2xl space-y-5">
+      <header className="relative overflow-hidden rounded-3xl border border-warning/20 bg-[#10100e] px-5 py-5 text-white shadow-xl shadow-base-content/5 sm:px-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-32 size-72 rounded-full border border-warning/10" />
+        <div aria-hidden="true" className="pointer-events-none absolute right-20 -top-24 size-56 rounded-full border border-warning/10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-warning/[0.06] to-transparent" />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
             <div className="avatar">
               <div className="w-16 h-16 rounded-2xl ring-2 ring-warning/70 overflow-hidden">
                 {user?.picture ? (
@@ -301,18 +301,17 @@ export default function UserDashboardHome() {
                 )}
               </div>
             </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[.18em] text-warning">Your workspace</p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[.2em] text-warning">Your workspace</p>
+              <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                 {getGreeting()}, {user?.fullName?.split(' ')[0] || user?.email}
               </h1>
-              <p className="mt-2 flex items-center gap-2 text-sm text-white/70">
-                <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs">{user?.role}</span>
-                <span>Pick up where you left off.</span>
+              <p className="mt-1 text-sm text-white/60">
+                Pick up where you left off.
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex shrink-0 flex-wrap gap-2">
             <button onClick={() => handleOpenTool('/dashboard/chat')} className="btn btn-warning btn-sm gap-2">
               <Plus className="w-4 h-4" /> New Chat
             </button>
@@ -323,53 +322,55 @@ export default function UserDashboardHome() {
         </div>
       </header>
 
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-2">
+      <section className="rounded-2xl border border-base-content/10 bg-base-100 p-3 shadow-sm">
+        <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[.16em] text-base-content/45">Quick actions</div>
+        <div className="flex flex-wrap gap-2">
         {quickActions.map((action) => (
-          <button key={action.label} onClick={action.action} className="btn btn-sm gap-2 border-base-content/10 bg-base-100 shadow-sm hover:border-primary/25 hover:bg-primary/5">
+          <button key={action.label} onClick={action.action} className="btn btn-sm gap-2 border-base-content/10 bg-base-200/50 hover:border-primary/25 hover:bg-primary/5">
             <action.icon className="w-4 h-4" />
             {action.label}
           </button>
         ))}
-      </div>
+        </div>
+      </section>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
             <MessageCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wider text-base-content/50">Conversations</p>
-            <p className="text-3xl font-bold text-primary mt-1">
+            <p className="text-[11px] font-medium uppercase tracking-[.14em] text-base-content/50">Conversations</p>
+            <p className="text-2xl font-semibold tabular-nums text-primary mt-0.5">
               <Counter value={stats?.conversations ?? 0} />
             </p>
           </div>
         </div>
-        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <div className="p-3 rounded-xl bg-secondary/10 text-secondary shrink-0">
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wider text-base-content/50">Messages</p>
-            <p className="text-3xl font-bold text-secondary mt-1">
+            <p className="text-[11px] font-medium uppercase tracking-[.14em] text-base-content/50">Messages</p>
+            <p className="text-2xl font-semibold tabular-nums text-secondary mt-0.5">
               <Counter value={stats?.messages ?? 0} />
             </p>
           </div>
         </div>
-        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <div className="group flex items-center gap-4 rounded-2xl border border-base-content/10 bg-base-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <div className="p-3 rounded-xl bg-accent/10 text-accent shrink-0">
             <Sparkles className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wider text-base-content/50">Tools Available</p>
-            <p className="text-3xl font-bold text-accent mt-1">{tools.length}</p>
+            <p className="text-[11px] font-medium uppercase tracking-[.14em] text-base-content/50">Tools Available</p>
+            <p className="text-2xl font-semibold tabular-nums text-accent mt-0.5">{tools.length}</p>
           </div>
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,1fr)_minmax(0,1.2fr)]">
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)]">
         {/* Profile Completion */}
         <div className="flex flex-col items-center rounded-3xl border border-base-content/10 bg-base-100 p-6 shadow-sm">
           <div className="radial-progress text-primary" style={{ "--value": profileCompletion, "--size": "6rem", "--thickness": "0.5rem" } as React.CSSProperties}>
@@ -393,13 +394,13 @@ export default function UserDashboardHome() {
         <OnboardingChecklist stats={stats} usage={usage} />
 
         {/* Activity Feed */}
-        <div className="rounded-3xl border border-base-content/10 bg-base-100 p-5 shadow-sm sm:p-6">
+        <div className="rounded-2xl border border-base-content/10 bg-base-100 p-4 shadow-sm xl:col-span-2">
           <h3 className="text-lg font-bold flex items-center gap-2 text-base-content mb-4">
             <Clock className="w-5 h-5 text-base-content/50" /> Recent Activity
           </h3>
           {activity?.recentChats?.length ? (
             <ul className="space-y-3">
-              {activity.recentChats.map((chat) => (
+              {activity.recentChats.slice(0, 3).map((chat) => (
                 <li key={chat.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-base-200/50 transition-colors">
                   <MessageCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">

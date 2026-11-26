@@ -40,6 +40,20 @@ export class PortfolioController {
     return this.portfolioService.updateProfile(body);
   }
 
+  @Get('cv-data')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  getCvData() {
+    return this.portfolioService.getCvDataFileObject();
+  }
+
+  @Put('cv-data')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  replaceCvData(@Body() body: unknown) {
+    return this.portfolioService.replaceCvData(body);
+  }
+
   /* Education */
   @Get('educations')
   getEducations() {

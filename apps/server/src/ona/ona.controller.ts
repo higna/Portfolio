@@ -7,7 +7,12 @@ import {
   UseGuards,
   Param,
   Logger,
+  ParseIntPipe,
+  BadRequestException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { OnaService, ExportOptions } from './ona.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,6 +25,7 @@ import { getPythonExecutable } from '../common/python-runtime';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { existsSync, unlinkSync, createReadStream } from 'fs';
+import { randomUUID } from 'crypto';
 
 function safeFileName(name: string): string {
   return name
@@ -87,10 +93,34 @@ export class OnaController {
     }
   }
 
+  @Post('forms/:formId/submissions/import')
+  @Roles(UserRole.SUPERADMIN)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
+  async importSubmissions(
+    @Param('formId', ParseIntPipe) formId: number,
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Select an XLSX file to upload');
+    }
+    if (
+      !file.originalname.toLowerCase().endsWith('.xlsx') ||
+      !file.buffer.subarray(0, 2).equals(Buffer.from('PK'))
+    ) {
+      throw new BadRequestException('The uploaded file must be a valid XLSX workbook');
+    }
+
+    return this.onaService.importXlsxSubmissions(formId, file.buffer);
+  }
+
   @Get('template/:formId')
   @Roles(UserRole.SUPERADMIN)
   async downloadTemplate(
-    @Param('formId') formId: string,
+    @Param('formId', ParseIntPipe) formId: number,
     @Res() res: Response,
   ) {
     const apiKey = this.configService.get<string>('ONA_API_KEY') || '';
@@ -104,7 +134,7 @@ export class OnaController {
       'scripts',
       'generate_form_template.py',
     );
-    const outputPath = join(tmpdir(), `template_${formId}.xlsx`);
+    const outputPath = join(tmpdir(), `template_${formId}_${randomUUID()}.xlsx`);
 
     // Pass Seed Tracker credentials so the script can log in
     const env = {
@@ -118,7 +148,7 @@ export class OnaController {
 
     const proc = spawn(
       getPythonExecutable(),
-      [scriptPath, apiKey, baseUrl, formId, outputPath],
+      [scriptPath, apiKey, baseUrl, String(formId), outputPath],
       { env },
     );
 
@@ -149,6 +179,9 @@ export class OnaController {
     proc.on('close', (code) => {
       if (code !== 0 || !existsSync(outputPath)) {
         this.logger.error(`Template generation failed: ${stderr}`);
+        try {
+          if (existsSync(outputPath)) unlinkSync(outputPath);
+        } catch {}
         return res
           .status(500)
           .json({ message: 'Template generation failed', detail: stderr });
@@ -168,10 +201,20 @@ export class OnaController {
           unlinkSync(outputPath);
         } catch {}
       });
+      readStream.on('error', (error) => {
+        this.logger.error(`Template download stream failed: ${error.message}`);
+        try {
+          if (existsSync(outputPath)) unlinkSync(outputPath);
+        } catch {}
+        if (!res.headersSent) res.status(500).json({ message: 'Template download failed' });
+      });
     });
 
     proc.on('error', (err) => {
       this.logger.error(`Failed to spawn Python process: ${err.message}`);
+      try {
+        if (existsSync(outputPath)) unlinkSync(outputPath);
+      } catch {}
       return res.status(500).json({ message: 'Internal error' });
     });
   }

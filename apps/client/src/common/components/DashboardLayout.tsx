@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
   LayoutDashboard,
-  MessageCircle,
   Wrench,
   Briefcase,
   BookOpen,
@@ -33,6 +32,11 @@ import { createLogger } from '../../lib/logger';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import CommandPalette from './CommandPalette';
+import {
+  DashboardBannerActionButton,
+  DashboardBannerMeta,
+  DashboardBannerActionProvider,
+} from './DashboardBannerAction';
 
 const logger = createLogger('DashboardLayout');
 
@@ -44,6 +48,8 @@ const dashboardPageDetails: Record<string, { title: string; description: string 
   '/dashboard/certifications': { title: 'Certifications', description: 'Manage your professional certifications.' },
   '/dashboard/education': { title: 'Education', description: 'Manage your education history.' },
   '/dashboard/experience': { title: 'Experience', description: 'Manage your professional experience.' },
+  '/dashboard/cv-data': { title: 'CV JSON editor', description: 'Import, edit, and export the complete CV data document.' },
+  '/dashboard/cv-tailor': { title: 'Tailor a CV', description: 'Create a job-specific CV draft using your latest saved CV data.' },
   '/dashboard/data/download': { title: 'Data download', description: 'Export portfolio and account data.' },
   '/dashboard/data/pipeline': { title: 'Data pipeline', description: 'Run and monitor portfolio data workflows.' },
   '/dashboard/campaign': { title: 'Campaign studio', description: 'Create and manage campaign templates.' },
@@ -54,7 +60,13 @@ const dashboardPageDetails: Record<string, { title: string; description: string 
 };
 
 function DashboardPageBanner({ pathname }: { pathname: string }) {
-  if (pathname === '/dashboard' || pathname === '/dashboard/chat' || pathname === '/dashboard/cv-tailor') return null;
+  if (
+    pathname === '/dashboard' ||
+    pathname === '/dashboard/chat' ||
+    pathname === '/dashboard/cv-tailor' ||
+    pathname.startsWith('/dashboard/pdf/') ||
+    pathname.startsWith('/dashboard/barcode/')
+  ) return null;
   const exact = dashboardPageDetails[pathname];
   const page = exact
     ?? (pathname.startsWith('/dashboard/users/')
@@ -68,10 +80,16 @@ function DashboardPageBanner({ pathname }: { pathname: string }) {
   return (
     <header className="relative mb-7 overflow-hidden rounded-2xl border-b-2 border-warning bg-[#090909] px-6 py-6 text-white shadow-lg sm:px-8 sm:py-7">
       <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 size-64 rounded-full border border-warning/10" />
-      <div className="relative">
-        <p className="text-xs font-semibold uppercase tracking-[.22em] text-warning">Portfolio workspace</p>
-        <h1 className="mt-2 text-3xl font-medium tracking-tight sm:text-4xl">{page.title}</h1>
-        <p className="mt-1 text-base text-white/65">{page.description}</p>
+      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[.22em] text-warning">Portfolio workspace</p>
+          <h1 className="mt-2 text-3xl font-medium tracking-tight sm:text-4xl">{page.title}</h1>
+          <p className="mt-1 text-base text-white/65">{page.description}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <DashboardBannerMeta />
+          <DashboardBannerActionButton />
+        </div>
       </div>
     </header>
   );
@@ -112,6 +130,7 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/certifications', label: 'Certifications', icon: Award },
         { path: '/dashboard/education', label: 'Education', icon: GraduationCap },
         { path: '/dashboard/experience', label: 'Experience', icon: Briefcase },
+        { path: '/dashboard/cv-data', label: 'CV JSON', icon: FileText },
         { path: '/dashboard/cv-tailor', label: 'Tailor CV', icon: FileText },
         { path: '/dashboard/projects', label: 'Projects', icon: FolderGit2 },
         { path: '/dashboard/skills', label: 'Skills', icon: Wrench },
@@ -147,7 +166,6 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
-    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
   } else {
     config.push({ path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard });
     config.push({ path: '/dashboard/profile', label: 'Profile', icon: User });
@@ -173,7 +191,6 @@ const getNavConfig = (role: string): NavItem[] => {
         { path: '/dashboard/barcode/interpreter', label: 'Interpreter', icon: ScanLine },
       ],
     });
-    config.push({ path: '/dashboard/chat', label: 'AI Chat Bot', icon: MessageCircle });
   }
 
   return config;
@@ -408,9 +425,6 @@ export default function DashboardLayout() {
   const location = useLocation(); // Fixed: now inside component
   const role = user?.role || 'USER';
 
-  // Hide footer on the dashboard chat route
-  const isChatRoute = location.pathname === '/dashboard/chat';
-
   const navItems = useMemo(() => getNavConfig(role), [role]);
 
   useEffect(() => {
@@ -477,10 +491,20 @@ export default function DashboardLayout() {
               collapsed ? 'justify-center px-0' : 'px-4'
             }`}
           >
-            {!collapsed && (
-              <span className="font-extrabold text-lg tracking-tight text-base-content">
-                Menu
-              </span>
+            {collapsed ? (
+              <div className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary" title="Portfolio workspace">
+                <LayoutDashboard className="size-4" />
+              </div>
+            ) : (
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-content shadow-sm shadow-primary/20">
+                  <LayoutDashboard className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[9px] font-bold uppercase tracking-[0.2em] text-primary">Higna · Portfolio</p>
+                  <p className="truncate text-sm font-semibold tracking-tight text-base-content">Workspace</p>
+                </div>
+              </div>
             )}
           </div>
 
@@ -534,7 +558,10 @@ export default function DashboardLayout() {
             />
             <aside className="absolute left-0 top-0 h-full w-72 bg-base-100 shadow-2xl flex flex-col animate-slide-in-right">
               <div className="p-4 border-b border-base-content/5 flex items-center gap-3">
-                <h2 className="text-xl font-bold text-base-content">Menu</h2>
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-primary">Higna · Portfolio</p>
+                  <h2 className="text-lg font-semibold tracking-tight text-base-content">Workspace</h2>
+                </div>
                 <button
                   onClick={() => setMobileOpen(false)}
                   className="btn btn-ghost btn-circle btn-sm ml-auto"
@@ -579,14 +606,15 @@ export default function DashboardLayout() {
         {/* Main content */}
         <main className="flex-1 min-w-0 overflow-y-auto overflow-x-clip bg-base-200/40 px-4 py-6 pb-16 sm:px-6 lg:px-8">
           <div className="max-w-screen-2xl mx-auto">
-            <DashboardPageBanner pathname={location.pathname} />
-            <Outlet />
+            <DashboardBannerActionProvider>
+              <DashboardPageBanner pathname={location.pathname} />
+              <Outlet />
+            </DashboardBannerActionProvider>
           </div>
         </main>
       </div>
 
-      {/* Conditionally render footer – hidden on dashboard chat route */}
-      {!isChatRoute && <Footer />}
+      <Footer />
 
       {/* Command Palette */}
       <CommandPalette

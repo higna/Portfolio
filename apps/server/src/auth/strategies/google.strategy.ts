@@ -30,13 +30,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<any> {
     const { id, name, emails, photos } = profile;
+    const email = emails?.[0]?.value;
+    if (!email) return done(new Error('Google profile did not include an email'));
+    const fullName = [name?.givenName, name?.familyName]
+      .filter((part: string | undefined) => Boolean(part?.trim()))
+      .join(' ')
+      .trim() || name?.displayName || email;
     const user = {
       googleId: id,
-      email: emails[0].value,
-      fullName:
-        (name?.givenName ?? '') + ' ' + (name?.familyName ?? '') ||
-        name?.givenName ||
-        emails[0].value,
+      email,
+      fullName,
       picture: photos?.[0]?.value,
     };
     done(null, user);
