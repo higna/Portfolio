@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -19,6 +19,7 @@ const logger = createLogger("Router");
 /* Public pages */
 import HomePage from "./features/landing/HomePage";
 import ChatLauncher from "./features/chat/ChatLauncher";
+const SandboxPage = lazy(() => import("./features/sandbox/SandboxPage"));
 
 /* Auth pages */
 import {
@@ -57,22 +58,6 @@ import {
 
 import { PdfMerger, ImageToPdf, CampaignFill, ProjectsPage, BarcodeGenerator, BarcodeInterpreter } from "./features/projects";
 import { DashboardHome, ProfilePage } from "./features/dashboard";
-
-/* Placeholder public pages */
-function Analytics() {
-  return (
-    <div className="p-8 text-center text-2xl min-h-screen">
-      Analytics (coming soon)
-    </div>
-  );
-}
-function Sandbox() {
-  return (
-    <div className="p-8 text-center text-2xl min-h-screen">
-      Data Sandbox (coming soon)
-    </div>
-  );
-}
 
 function RouteLogger() {
   const location = useLocation();
@@ -149,8 +134,7 @@ export default function AppRouter() {
         {/* Public pages with main Navbar + Footer */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/sandbox" element={<Sandbox />} />
+          <Route path="/sandbox" element={<Suspense fallback={<div className="min-h-[60vh]" />}><SandboxPage /></Suspense>} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/pdf/merge" element={<PdfMerger />} />

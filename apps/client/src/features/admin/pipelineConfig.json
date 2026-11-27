@@ -63,6 +63,15 @@
         "spreadsheetKey": "cocoa"
     },
     {
+        "key": "seedSystemMapping",
+        "label": "B4T Seed System Mapping",
+        "description": "Form 881213 -> B4T worksheet (one row per respondent and crop)",
+        "scriptName": "clean_seed_system_mapping.py",
+        "formId": "881213",
+        "sheetName": "B4T",
+        "spreadsheetKey": "b4t"
+    },
+    {
         "key": "cocoaEval",
         "label": "Cocoa Field Evaluation",
         "description": "Form 878136 → Aggregated analysis & charts",

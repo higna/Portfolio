@@ -5,7 +5,11 @@ import {
   UseGuards,
   Get,
   Res,
+  BadRequestException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { PipelineService } from './pipeline.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -43,6 +47,30 @@ export class PipelineController {
       body.spreadsheetKey,
       body.generateCharts ?? false,
     );
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    stream.pipe(res);
+  }
+
+  @Post('germplasm/upload')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
+  async uploadGermplasmWorkbook(
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Res() res: Response,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Choose the GHU import/export workbook to upload');
+    }
+    if (
+      !file.originalname.toLowerCase().endsWith('.xlsx') ||
+      !file.buffer.subarray(0, 2).equals(Buffer.from('PK'))
+    ) {
+      throw new BadRequestException('The uploaded file must be a valid XLSX workbook');
+    }
+
+    const stream = this.pipelineService.uploadGermplasmWorkbook(file.buffer);
     res.setHeader('Content-Type', 'application/x-ndjson');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     stream.pipe(res);

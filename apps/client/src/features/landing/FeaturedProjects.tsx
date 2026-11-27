@@ -126,7 +126,21 @@ export default function FeaturedProjects() {
                   {[...projects, ...projects].map((project, index) => (
                     <div
                       key={`${project.id}-${index}`}
-                      className="shrink-0 w-75 sm:w-[320px] card bg-base-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-base-content/5 hover:border-primary/20 group/card"
+                      role={project.liveUrl || project.githubUrl ? 'link' : undefined}
+                      tabIndex={project.liveUrl || project.githubUrl ? 0 : undefined}
+                      aria-label={project.liveUrl || project.githubUrl ? `Open ${project.title}` : undefined}
+                      onClick={() => {
+                        const destination = project.liveUrl || project.githubUrl;
+                        if (destination) window.open(destination, '_blank', 'noopener,noreferrer');
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          const destination = project.liveUrl || project.githubUrl;
+                          if (destination) window.open(destination, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                      className={`shrink-0 w-75 sm:w-[320px] card bg-base-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-base-content/5 hover:border-primary/20 group/card ${project.liveUrl || project.githubUrl ? 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary' : ''}`}
                     >
                       <figure className="h-48 bg-base-300 flex items-center justify-center relative overflow-hidden">
                         {project.imageUrl ? (
@@ -160,6 +174,7 @@ export default function FeaturedProjects() {
                               href={project.liveUrl}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
                               className="btn btn-sm btn-primary gap-1.5"
                             >
                               <ExternalLink className="w-4 h-4" />
@@ -171,6 +186,7 @@ export default function FeaturedProjects() {
                               href={project.githubUrl}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
                               className="btn btn-sm btn-ghost gap-1.5"
                             >
                               <FiGithub className="w-4 h-4" />

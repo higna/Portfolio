@@ -8,7 +8,7 @@ import sys, json, os, tempfile, logging, traceback
 import pandas as pd
 import requests
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import gspread_dataframe as gd
 
 logging.basicConfig(
@@ -194,8 +194,8 @@ def main():
             "https://spreadsheets.google.com/feeds",
             "https://www.googleapis.com/auth/drive",
         ]
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
-            creds_json, scope
+        credentials = Credentials.from_service_account_info(
+            creds_json, scopes=scope
         )
         client = gspread.authorize(credentials)
 

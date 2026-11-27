@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Download,
   Link2,
+  Upload,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import pipelines from "./pipelineConfig.json";
@@ -30,6 +31,7 @@ export default function AdminPipeline() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadClicked, setDownloadClicked] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [germplasmFile, setGermplasmFile] = useState<File | null>(null);
 
   const [pipelineStates, setPipelineStates] = useState<
     Record<
@@ -81,6 +83,7 @@ export default function AdminPipeline() {
 
       const decoder = new TextDecoder();
       let buffer = "";
+      let pipelineError: string | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -96,11 +99,13 @@ export default function AdminPipeline() {
             const step = JSON.parse(line);
             updatePipelineState(pipeline.key, step);
             if (step.step === "error") {
-              toast.error(step.message || "Pipeline failed");
+              pipelineError = step.message || "Pipeline failed";
             }
           } catch (e) {}
         }
       }
+
+      if (pipelineError) throw new Error(pipelineError);
 
       if (pipeline.key === "cocoaEval" && generateCharts) {
         setDownloadUrl(
@@ -116,6 +121,87 @@ export default function AdminPipeline() {
         [pipeline.key]: {
           steps: { download: "failed", clean: "failed", upload: "failed" },
           message: "Pipeline failed – see error above",
+        },
+      }));
+    } finally {
+      setRunning(null);
+    }
+  };
+
+  const uploadGermplasm = async () => {
+    if (!germplasmFile) {
+      toast.error("Choose the GHU import/export workbook first");
+      return;
+    }
+
+    const key = "germplasmUpload";
+    setRunning(key);
+    setPipelineStates((prev) => ({
+      ...prev,
+      [key]: {
+        steps: { download: "idle", clean: "idle", upload: "idle" },
+        message: "Starting workbook upload…",
+      },
+    }));
+
+    try {
+      const formData = new FormData();
+      formData.append("file", germplasmFile);
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:2500"}/pipeline/germplasm/upload`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        },
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.message || "Workbook upload request failed");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No response body");
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let pipelineError: string | null = null;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const step = JSON.parse(line);
+            updatePipelineState(key, step);
+            if (step.step === "error") pipelineError = step.message || "Upload failed";
+          } catch {
+            // Ignore non-JSON log output and continue reading progress.
+          }
+        }
+      }
+      if (buffer.trim()) {
+        try {
+          const step = JSON.parse(buffer);
+          updatePipelineState(key, step);
+          if (step.step === "error") pipelineError = step.message || "Upload failed";
+        } catch {
+          // Ignore a final non-JSON log line.
+        }
+      }
+      if (pipelineError) throw new Error(pipelineError);
+      toast.success("Germplasm worksheet updated");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed";
+      toast.error(message);
+      setPipelineStates((prev) => ({
+        ...prev,
+        [key]: {
+          steps: { download: "idle", clean: "failed", upload: "failed" },
+          message,
         },
       }));
     } finally {
@@ -321,6 +407,74 @@ export default function AdminPipeline() {
             </div>
           );
         })}
+
+        <div className="group card bg-base-100 border border-base-content/10 shadow-sm hover:shadow-md transition-all duration-300 p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary to-accent" />
+
+          <div className="mb-5">
+            <h3 className="text-lg font-bold">Germplasm Exchange</h3>
+            <p className="text-sm text-base-content/60 mt-1">
+              Upload the GHU workbook to merge yearly sheets and update the Germplasm worksheet.
+            </p>
+          </div>
+
+          {(running === "germplasmUpload" ||
+            (getCurrentState("germplasmUpload").steps.clean === "done" &&
+              getCurrentState("germplasmUpload").steps.upload === "done")) && (
+            <div className="mb-5 bg-base-200/50 rounded-lg px-4 py-2.5 border border-base-content/10">
+              <p className="text-sm font-medium text-base-content/80">
+                {getCurrentState("germplasmUpload").message}
+              </p>
+              {running === "germplasmUpload" && (
+                <div className="w-full bg-base-300 rounded-full h-1.5 mt-2 overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full animate-progress-indeterminate"
+                    style={{ width: "40%" }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6">
+            <div className="flex flex-col items-center">
+              <StepIcon status={germplasmFile ? "done" : "idle"} />
+              <span className="text-xs text-base-content/50 mt-1">Workbook</span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-base-content/30" />
+            <div className="flex flex-col items-center">
+              <StepIcon status={getCurrentState("germplasmUpload").steps.clean} />
+              <span className="text-xs text-base-content/50 mt-1">Merge</span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-base-content/30" />
+            <div className="flex flex-col items-center">
+              <StepIcon status={getCurrentState("germplasmUpload").steps.upload} />
+              <span className="text-xs text-base-content/50 mt-1">Upload</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch gap-3 mt-auto">
+            <input
+              type="file"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              className="file-input file-input-bordered w-full min-w-0"
+              disabled={running !== null}
+              onChange={(event) => setGermplasmFile(event.target.files?.[0] ?? null)}
+            />
+            <button
+              onClick={uploadGermplasm}
+              disabled={!germplasmFile || running !== null}
+              className="btn btn-primary gap-2 shadow-sm hover:shadow-md transition-all sm:shrink-0"
+            >
+              {running === "germplasmUpload" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              {running === "germplasmUpload" ? "Updating…" : "Upload & Update"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {pipelines.length === 0 && (
